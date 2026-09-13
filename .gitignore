@@ -1,7 +1,7 @@
 # 用户在 Keil 中的 UI 设置
 *.uvgui.*
 
-# Keil 自己创建的各类工程文件
+# Keil 自己生成的文件夹。递归匹配子目录下每一项有该名字的文件夹。
 **/Listings/
 **/Objects/
 

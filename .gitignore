@@ -1,0 +1,11 @@
+# 用户在 Keil 中的 UI 设置
+*.uvgui.*
+
+/Listings
+/Objects
+
+*.hex
+*.obj
+*.lst
+*.m51
+*.lnp

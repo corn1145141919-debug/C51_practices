@@ -1,8 +1,9 @@
 # 用户在 Keil 中的 UI 设置
 *.uvgui.*
 
-/Listings
-/Objects
+# Keil 自己创建的各类工程文件
+**/Listings/
+**/Objects/
 
 *.hex
 *.obj

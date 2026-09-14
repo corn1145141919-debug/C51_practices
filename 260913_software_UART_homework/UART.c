@@ -1,6 +1,14 @@
 #include <REGX52.H>
 #include "digital_tube.h"
 
+// 能让 VS Code 的 IntelliSense 和 Keil 同时正确读取（需要安装Keil Assistant插件）
+// 理论上来讲，在把这个软件发布给任何只有Keil软件的用户时，这些源代码都能被正确编译
+#ifndef __VSCODE_C51__
+#define INTERRUPT(x) interrupt x
+#else
+#define INTERRUPT(x)
+#endif
+
 volatile unsigned char UART_received_data_buffer;
 volatile unsigned long tube_display_data_buffer;
 
@@ -61,7 +69,7 @@ void UART_SendByte(unsigned char byte)
     ES = (bit)ES_before; // 恢复该函数运行前的串口中断设置
 }
 
-void UART_ISR() interrupt 4 // 不是计时器中断而是串口中断
+void UART_ISR() INTERRUPT(4) // 不是计时器中断而是串口中断
 {
     // 手动复位
     // TI的处理全权由 SendByte() 负责

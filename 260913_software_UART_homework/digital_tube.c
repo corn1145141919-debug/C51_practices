@@ -6,6 +6,14 @@
 #define BIT_SELECTION_REG P2
 #define SEG_SELECTION_REG P0
 
+// 能让 VS Code 的 IntelliSense 和 Keil 同时正确读取（需要安装Keil Assistant插件）
+// 理论上来讲，在把这个软件发布给任何只有Keil软件的用户时，这些源代码都能被正确编译
+#ifndef __VSCODE_C51__
+#define INTERRUPT(x) interrupt x 
+#else
+#define INTERRUPT(x)
+#endif
+
 const char table[] = {
     0x3f,
     0x06,
@@ -74,7 +82,7 @@ void add_decimal_point(unsigned char bit_target)
 }
 
 // 核心机制。不能暴露对外接口
-void DigitalTube_Refresh_ISR(void) interrupt 1 // 写完记得恢复
+void DigitalTube_Refresh_ISR(void) INTERRUPT(1) 
 {
     // 旧的C标准只支持在任何可执行语句开头声明变量
     // 但是注意：初始化必须写在下面，必须与普通赋值语句区分开！

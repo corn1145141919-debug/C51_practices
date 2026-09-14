@@ -5,6 +5,9 @@
 **/Listings/
 **/Objects/
 
+# 暂时不将 `c_cpp_properties.json` 等任何配置文件加入版本控制，避免不同开发者之间的配置冲突。
+**/.vscode/
+
 *.hex
 *.obj
 *.lst

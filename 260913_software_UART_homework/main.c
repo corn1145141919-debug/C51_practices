@@ -18,7 +18,7 @@ void main()
         // 可能违背了保护现场的原则 但是这确实是一个人为设计的中断后就会被改变的变量
         DigitalTube_Display_hex_unsigned_long(test);
         UART_Transmitter_SendByte(test);
-        delay(500); // 在加速模式下实际上是0.25秒
+        delay(244); // 在加速模式下实际上是0.122秒
         test++;
     }
 }

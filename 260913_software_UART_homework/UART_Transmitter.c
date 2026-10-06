@@ -42,6 +42,7 @@ void UART_Transmitter_SendByte(unsigned char byte_2b_sent)
     if (!tx_busy) 
     {
         UART_data_to_be_transmitted = byte_2b_sent;
+        TF1 = 0; // 明确行为：一定是在改函数被执行之后一个完整的bit时间后信息才发送。如果不这样设置，发送可能立即开始或者隔一个bit时间开始（行为不确定）。
         TL1 = TH1; // 手动重装，重设相位
         tx_busy = 1;
     }

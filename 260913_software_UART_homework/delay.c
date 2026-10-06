@@ -11,7 +11,7 @@ void Delay1ms(void) //@12.000MHz
     } while (--i);
 }
 
-void delay(unsigned char ms)
+void delay(unsigned int ms)
 {
     while (ms--)
     {

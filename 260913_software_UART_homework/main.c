@@ -7,10 +7,11 @@
 
 void main()
 {
+    unsigned char test = 0;
     UART_Receiver_init();
     UART_Transmitter_init();
     Timer0_Init();
-    unsigned char test = 0;
+    
     while(1)
     {
         // 反复执行可能会有点耗费性能

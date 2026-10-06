@@ -8,11 +8,12 @@
 #define INTERRUPT(x)
 #endif
 
+volatile unsigned char UART_data_to_be_transmitted;
+// 起个别名，该位不仅控制timer1能否被触发，而且语义上控制“发送端是否正忙”（对应流程图中的状态机模型）
+sbit tx_busy = 0xAB; 
+
 void UART_Transmitter_init()
-{
-    // 起个别名，该位不仅控制timer1能否被触发，而且语义上控制“发送端是否正忙”（对应流程图中的状态机模型）
-    sbit tx_busy = 0xAB; 
-    
+{   
     EA = 1; // 允许中断
     ES = 0; // 禁止来自原生硬件 UART 的中断
 
@@ -33,7 +34,35 @@ void UART_Transmitter_init()
     // 倍速模式如何设置？
 }
 void UART_Transmitter_SendByte(unsigned char byte)
-{}
+{
+    if (!tx_busy) // 如果正在发送那么就拒绝发送传来的byte，而是直接丢弃
+    {
+        UART_data_to_be_transmitted = byte;
+        tx_busy = 1;
+    }
+}
 
 void UART_Transmitter_SendByte_Real() INTERRUPT(3)
-{}
+{
+    // 8位模式下从首校验位到尾校验位是0到9，1到8是数据位
+    static unsigned char curr_bit = 0; // 先初始化为首位
+    static unsigned char mask = 0x80; // 初始状态
+
+    sbit output = 0x01;
+    if (curr_bit == 0)
+    {
+        output = 0; // 拉低
+    }
+    else if (1 <= curr_bit && curr_bit <= 8)
+    {
+        output = mask & UART_data_to_be_transmitted; // 非0则赋值为1；这种用法在官方示例中也出现了，是可以依赖的
+        mask >>= 1; // 这一条在curr_bit == 8的时候也会执行；这样做只是为了减少条件判断
+    }
+    else if (curr_bit == 9)
+    {
+        output = 1;
+        tx_busy = 0; // 恢复等待状态
+        mask = 0x80; // 恢复初始状态
+    }
+    curr_bit = (curr_bit + 1) % 10; // 自然地将圈子兜回来
+}

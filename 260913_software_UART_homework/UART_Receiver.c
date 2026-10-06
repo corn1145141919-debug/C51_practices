@@ -12,7 +12,7 @@
 volatile unsigned char UART_received_data_buffer;
 volatile unsigned long tube_display_data_buffer;
 
-void UART_init(void)
+void UART_Receiver_init(void)
 {
     // 相关设定对于软件uart不适用
     // 串口相关寄存器
@@ -57,7 +57,7 @@ void UART_init(void)
     tube_display_data_buffer = 0x00000000;
 }
 
-void UART_ISR() INTERRUPT(4) // 不是计时器中断而是串口中断
+void UART_Receiver_ISR() INTERRUPT(4) // 不是计时器中断而是串口中断
 {
     // 手动复位
     // TI的处理全权由 SendByte() 负责

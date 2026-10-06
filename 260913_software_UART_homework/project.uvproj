@@ -399,14 +399,24 @@
               <FilePath>.\timer0.h</FilePath>
             </File>
             <File>
-              <FileName>UART.c</FileName>
+              <FileName>UART_Receiver.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\UART.c</FilePath>
+              <FilePath>.\UART_Receiver.c</FilePath>
             </File>
             <File>
-              <FileName>UART.h</FileName>
+              <FileName>UART_Transmitter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\UART_Transmitter.c</FilePath>
+            </File>
+            <File>
+              <FileName>UART_Receiver.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\UART.h</FilePath>
+              <FilePath>.\UART_Receiver.h</FilePath>
+            </File>
+            <File>
+              <FileName>UART_Transmitter.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\UART_Transmitter.h</FilePath>
             </File>
           </Files>
         </Group>

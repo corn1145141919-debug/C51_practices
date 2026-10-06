@@ -10,9 +10,9 @@ void main()
     UART_Receiver_init();
     UART_Transmitter_init();
     Timer0_Init();
+    unsigned char test = 0;
     while(1)
     {
-        unsigned char test = 0;
         // 反复执行可能会有点耗费性能
         // 可能违背了保护现场的原则 但是这确实是一个人为设计的中断后就会被改变的变量
         DigitalTube_Display_hex_unsigned_long(test);

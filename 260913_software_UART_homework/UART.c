@@ -14,8 +14,6 @@ volatile unsigned long tube_display_data_buffer;
 
 void UART_init(void)
 {
-    // 起个别名，该位不仅控制timer1能否被触发，而且语义上控制“发送端是否正忙”（对应流程图中的状态机模型）
-    sbit tx_busy = 0xAB; 
     // 相关设定对于软件uart不适用
     // 串口相关寄存器
     // // 模式1
@@ -39,17 +37,16 @@ void UART_init(void)
     ES = 0; // 禁止来自原生硬件 UART 的中断
 
     // 定时器相关寄存器
-    // 以下为负责发送的 Timer1 初始化
-    TMOD = (TMOD & 0x0f) | 0x20;
+    // 以下为负责接收的的 Timer2 初始化
 
-    TF1 = 0; // 定时器清零
-    TR1 = 1; // 允许定时器运行
+    // 定时器清零
+    // 允许定时器运行
 
-    // 定时器1本身发出9600bps@11.0592MHz
-    TL1 = 0x40; // 定时器初值
-    TH1 = 0x40; // 定时器重装值
+    // 定时器2本身发出9600bps@11.0592MHz
+    // 定时器初值
+    // 定时器重装值
     
-    tx_busy = 0; // 默认没有发送；这在硬件上是中断寄存器设置
+    // 默认没有；这在硬件上是中断寄存器设置
     
     // 中断优先级：串口优先级为3
     // PX0H = 1; // 不可位寻址 // 可能STC89C52RC没有 IPH 寄存器
@@ -58,18 +55,6 @@ void UART_init(void)
 
     UART_received_data_buffer = 0x00;
     tube_display_data_buffer = 0x00000000;
-}
-
-void UART_SendByte(unsigned char byte)
-{
-    unsigned char ES_before = ES;
-    ES = 0; // 暂时禁止串口中断，以免该函数与串口ISR发生冲突
-    TI = 0; // 清除可能残留的发送完成标志 // “函数自己建立自己的初始条件”
-    SBUF = byte;
-    while(TI == 0)
-    {} // 只有当TI == 1 即消息被发出之后才跳出来，否则一直占用时钟周期保证写入的消息不被覆盖
-    TI = 0; // 手动重置 // 谁等待或者消费 TI == 1 的事件，谁就应该来清TI
-    ES = (bit)ES_before; // 恢复该函数运行前的串口中断设置
 }
 
 void UART_ISR() INTERRUPT(4) // 不是计时器中断而是串口中断

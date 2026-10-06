@@ -14,6 +14,9 @@ volatile unsigned long tube_display_data_buffer;
 
 void UART_init(void)
 {
+    // 起个别名，该位不仅控制timer1能否被触发，而且语义上控制“发送端是否正忙”（对应流程图中的状态机模型）
+    sbit tx_busy = 0xAB; 
+    // 相关设定对于软件uart不适用
     // 串口相关寄存器
     // // 模式1
     // SM0 = 0;
@@ -28,30 +31,30 @@ void UART_init(void)
 
     // TI = 0;
     // RI = 0;
-    // 一个时钟周期内完成
-    SCON = 0x50;
+    // 一个时钟周期内完成上述配置
+    // SCON = 0x50;
+    // PCON &= 0x7f; // 波特率不加倍？
 
-    PCON &= 0x7f; // 波特率不加倍
+    EA = 1; // 允许中断
+    ES = 0; // 禁止来自原生硬件 UART 的中断
 
     // 定时器相关寄存器
-    // 以下为 Timer1 初始化
+    // 以下为负责发送的 Timer1 初始化
     TMOD = (TMOD & 0x0f) | 0x20;
 
     TF1 = 0; // 定时器清零
     TR1 = 1; // 允许定时器运行
 
-    // 9600bps@11.0592MHz
-    TL1 = 0xfd; // 定时器初值
-    TH1 = 0xfd; // 定时器重装值
-
-    // 中断相关寄存器
-    EA = 1;
-    ET1 = 0; // 禁止定时器1中断——中断只能来自串口通信，不能来自定时器1本身。定时器1仅为波特率发生器
-    ES = 1; // 但是要允许来自UART的中断！
+    // 定时器1本身发出9600bps@11.0592MHz
+    TL1 = 0x40; // 定时器初值
+    TH1 = 0x40; // 定时器重装值
+    
+    tx_busy = 0; // 默认没有发送；这在硬件上是中断寄存器设置
+    
     // 中断优先级：串口优先级为3
     // PX0H = 1; // 不可位寻址 // 可能STC89C52RC没有 IPH 寄存器
     // 高优先级
-    PS = 1;
+    // PS = 1;
 
     UART_received_data_buffer = 0x00;
     tube_display_data_buffer = 0x00000000;

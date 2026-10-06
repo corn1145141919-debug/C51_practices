@@ -35,11 +35,14 @@ void UART_Transmitter_init()
     // 优先级还没有设置
     // 倍速模式如何设置？
 }
-void UART_Transmitter_SendByte(unsigned char byte)
+void UART_Transmitter_SendByte(unsigned char byte_2b_sent)
 {
-    if (!tx_busy) // 如果正在发送那么就拒绝发送传来的byte，而是直接丢弃
+    // 如果正在发送那么就拒绝发送传来的byte，而是直接丢弃。
+    // 可能需要添加返回失败结果的机制。不过发送数据暂存，失败处理等等可能需要交给未来的上层。
+    if (!tx_busy) 
     {
-        UART_data_to_be_transmitted = byte;
+        UART_data_to_be_transmitted = byte_2b_sent;
+        TL1 = TH1; // 手动重装，重设相位
         tx_busy = 1;
     }
 }

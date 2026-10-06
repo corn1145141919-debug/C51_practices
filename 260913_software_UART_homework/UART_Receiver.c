@@ -9,6 +9,7 @@
 #define INTERRUPT(x)
 #endif
 
+sfr IPH = 0xb7;
 volatile unsigned char UART_received_data_buffer;
 volatile unsigned long tube_display_data_buffer;
 
@@ -43,33 +44,33 @@ void UART_Receiver_init(void)
     // 定时器相关寄存器
     // 以下为负责接收的的 Timer2 初始化
 
-    // 定时器清零
-    
-    // 允许定时器运行
+    // 定时器允许与清零与模式设定（16位自动重装）
+    T2CON = 0x04;
+    // TF2 = 0; // 这条代码被上面包含了
+    // 注意后续代码中必须手动将TF2清零！
 
-    // 定时器2本身发出9600bps@11.0592MHz
-    // 定时器初值
+    // 定时器2本身发出(3 * 9600)bps@11.0592MHz
+    // 定时器初值（注意每次重设相位的时候都需要该操作）
+    TH2 = 0xff;
+    TL2 = 0xc0;
     // 定时器重装值
+    RCAP2H = 0xff;
+    RCAP2L = 0xc0;
     
-    // 默认没有；这在硬件上是中断寄存器设置
-    
-    // 中断优先级：串口优先级为3
-    // PX0H = 1; // 不可位寻址 // 可能STC89C52RC没有 IPH 寄存器
-    // 高优先级
-    // PS = 1;
+    // 下降沿和定时器2中断同时设定为最高优先级 11
+    IPH &= 0x21;
+    PT2 = 1;
+    PX0 = 1;
 
     UART_received_data_buffer = 0x00;
     tube_display_data_buffer = 0x00000000;
 }
 
-void UART_Receiver_ISR() INTERRUPT(4) // 不是计时器中断而是串口中断
+void UART_Receiver_ISR() INTERRUPT(5) // 不是计时器中断而是串口中断
 {
-    // 手动复位
-    // TI的处理全权由 SendByte() 负责
-    // if (TI == 1)
-    // {
-    //     TI = 0;
-    // }
+    // 定时器初值（注意每次重设相位的时候都需要该操作）
+    TH2 = 0xff;
+    TL2 = 0xc0;
 
     if (RI == 1)
     {
@@ -81,4 +82,6 @@ void UART_Receiver_ISR() INTERRUPT(4) // 不是计时器中断而是串口中断
         // 手动复位
         RI = 0;
     }
+
+    TF2 = 0; // 必须在软件层面上将该标志位清零
 }

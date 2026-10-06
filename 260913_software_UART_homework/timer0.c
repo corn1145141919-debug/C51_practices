@@ -1,4 +1,5 @@
 #include <REGX52.H>
+sfr IPH = 0xb7;
 void Timer0_Init()
 {
     // 不干扰计时器1
@@ -8,7 +9,6 @@ void Timer0_Init()
     TF0 = 0;
     TR0 = 1;
 
-
     TH0 = 255;
     TL0 = 0;
 
@@ -16,6 +16,7 @@ void Timer0_Init()
     ET0 = 1;
     EA = 1;
 
-    // 低优先级
+    // 最低优先级 00
+    IPH |= 0x00;
     PX0 = 0;
 }

@@ -9,6 +9,7 @@
 #endif
 
 volatile unsigned char UART_data_to_be_transmitted;
+sfr IPH = 0xb7;
 // 起个别名，该位不仅控制timer1能否被触发，而且语义上控制“发送端是否正忙”（对应流程图中的状态机模型）
 sbit tx_busy = 0xAB; 
 
@@ -32,8 +33,10 @@ void UART_Transmitter_init()
     
     tx_busy = 0; // 默认没有发送；这在硬件上是中断寄存器设置
 
-    // 优先级还没有设置
-    // 倍速模式如何设置？
+    // 优先级 10
+    IPH &= 0x80;
+    PT1 = 0;
+    
 }
 void UART_Transmitter_SendByte(unsigned char byte_2b_sent)
 {

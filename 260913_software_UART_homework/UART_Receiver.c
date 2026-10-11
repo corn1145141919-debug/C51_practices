@@ -18,7 +18,7 @@ sbit myRX = 0xb2; // 接收传到P3_2，这里起个别名并且方便修改
 // 由于初始化由interrupt 0实现，我们必须把本来应该封装给interrupt 5的一些变量放在这里：
 // 用计数来隐式实现状态机模式图中的状态转移。这里我们规定0、1、2对应StartChecking；3到26是正常接收；27到29（或者后续更多）是EndChecking
 static unsigned char timer2_isr_count = 0;
-static unsigned char start_count = 0;
+static unsigned char ones_count_of_curr_bit = 0;
 
 void UART_Receiver_init(void)
 {
@@ -66,7 +66,7 @@ void UART_Receiver_FallingEdge_ISR() INTERRUPT(0) // 不是计时器中断而是
     TL2 = 0xc0;
     TF2 = 0; // 并且在软件层面上将该标志位清零
     timer2_isr_count = 0;
-    start_count = 0;
+    ones_count_of_curr_bit = 0;
     ET2 = 1; // 这样应该会立即进入 bit 检测的ISR
 }
 
@@ -92,12 +92,12 @@ void UART_Receiver_Timer2_ISR() INTERRUPT(5)
     // StartChecking的上半部分
     if (timer2_isr_count < 3 && !myRX) // myRX == 0，是标准位
     {
-        start_count++;
+        ones_count_of_curr_bit++;
     }
     else if (3 <= timer2_isr_count && timer2_isr_count < 27) // 正在检测
     {}
     // StartChecking的下半部分
-    if (timer2_isr_count == 2 && start_count < 2) // 0或1次则认为下降沿误报，需要恢复状态
+    if (timer2_isr_count == 2 && ones_count_of_curr_bit < 2) // 0或1次则认为下降沿误报，需要恢复状态
     {
         ET2 = 0;
         receiver_idle = 1;

@@ -12,33 +12,21 @@
 sfr IPH = 0xb7;
 volatile unsigned char UART_received_data_buffer;
 volatile unsigned long tube_display_data_buffer;
+sbit receiver_idle = 0xa8; // 给EX0起别名
+sbit myRX = 0xb2; // 接收传到P3_2，这里起个别名并且方便修改
+
+// 由于初始化由interrupt 0实现，我们必须把本来应该封装给interrupt 5的一些变量放在这里：
+// 用计数来隐式实现状态机模式图中的状态转移。这里我们规定0、1、2对应StartChecking；3到26是正常接收；27到29（或者后续更多）是EndChecking
+static unsigned char timer2_isr_count = 0;
+static unsigned char start_count = 0;
 
 void UART_Receiver_init(void)
 {
-    // 相关设定对于软件uart不适用
-    // 串口相关寄存器
-    // // 模式1
-    // SM0 = 0;
-    // SM1 = 1;
-
-    // SM2 = 0;
-    // // 允许接收
-    // REN = 1;
-
-    // TB8 = 0;
-    // RB8 = 0;
-
-    // TI = 0;
-    // RI = 0;
-    // 一个时钟周期内完成上述配置
-    // SCON = 0x50;
-    // PCON &= 0x7f; // 波特率不加倍？
-
     EA = 1; // 允许中断
     ES = 0; // 禁止来自原生硬件 UART 的中断
 
     // 下降沿中断设置范式
-    EX0 = 1; // 允许INT0中断；
+    receiver_idle = 1; // 允许INT0中断； // 主要通过这个来设置
     IT0 = 1; // 使用下降沿中断
 
     // 定时器相关寄存器
@@ -56,6 +44,9 @@ void UART_Receiver_init(void)
     // 定时器重装值
     RCAP2H = 0xff;
     RCAP2L = 0xc0;
+
+    // 先禁止定时器中断
+    ET2 = 0;
     
     // 下降沿和定时器2中断同时设定为最高优先级 11
     IPH &= 0x21;
@@ -66,12 +57,27 @@ void UART_Receiver_init(void)
     tube_display_data_buffer = 0x00000000;
 }
 
-void UART_Receiver_ISR() INTERRUPT(5) // 不是计时器中断而是串口中断
+void UART_Receiver_FallingEdge_ISR() INTERRUPT(0) // 不是计时器中断而是串口中断
 {
-    // 定时器初值（注意每次重设相位的时候都需要该操作）
+    receiver_idle = 0;
+
+    // 重设相位并且在软件层面上将标志位清零
     TH2 = 0xff;
     TL2 = 0xc0;
+    TF2 = 0; // 并且在软件层面上将该标志位清零
+    timer2_isr_count = 0;
+    start_count = 0;
+    ET2 = 1; // 这样应该会立即进入 bit 检测的ISR
+}
 
+void UART_Receiver_Back2Idle(void)
+{
+    ET2 = 0;
+    receiver_idle = 1;
+}
+
+void UART_Receiver_Timer2_ISR() INTERRUPT(5)
+{
     if (RI == 1)
     {
         // 由于接收和输入共用中断，接收后的ISR必须放在这里
@@ -83,5 +89,20 @@ void UART_Receiver_ISR() INTERRUPT(5) // 不是计时器中断而是串口中断
         RI = 0;
     }
 
-    TF2 = 0; // 必须在软件层面上将该标志位清零
+    // StartChecking的上半部分
+    if (timer2_isr_count < 3 && !myRX) // myRX == 0，是标准位
+    {
+        start_count++;
+    }
+    else if (3 <= timer2_isr_count && timer2_isr_count < 27) // 正在检测
+    {}
+    // StartChecking的下半部分
+    if (timer2_isr_count == 2 && start_count < 2) // 0或1次则认为下降沿误报，需要恢复状态
+    {
+        ET2 = 0;
+        receiver_idle = 1;
+        return;
+    }
+
+    timer2_isr_count++;
 }

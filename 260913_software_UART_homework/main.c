@@ -10,11 +10,13 @@ void main()
     unsigned char ring_buffer[4];
     unsigned char ring_buffer_head = 0;
     unsigned char ring_buffer_tail = 0;
-    unsigned long temp_output = 0x00;
+    unsigned long temp_output = 0x00000000;
 
     UART_Receiver_init();
     UART_Transmitter_init();
     Timer0_Init();
+
+    UART_Transmitter_SendByte(temp_output); // 初始化：使数码管最早显示正确数字
     
     while(1)
     {

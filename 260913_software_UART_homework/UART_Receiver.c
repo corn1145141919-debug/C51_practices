@@ -103,7 +103,10 @@ void UART_Receiver_Timer2_ISR() INTERRUPT(5)
     // 每个bit，无论是在StartChecking阶段还是Receiving阶段，都需要检测该位中0和1的情况（我们这里计数1）。
     // 它可能是最频繁被调用的语句之一，所以我们放在外边。
     // 不知道这样的处理是否最优。
-    ones_count_of_curr_bit += myRX;
+    if (myRX)
+    {
+        ones_count_of_curr_bit++;
+    }
 
     // 需要在每一位被接收完毕之后结算（EndChecking每一位都需要结算）。不同的状态对应下列if-else语句不同的入口。
     // 末尾需要将ones_count_of_curr_bit清零。EndChecking例外。
@@ -142,7 +145,15 @@ void UART_Receiver_Timer2_ISR() INTERRUPT(5)
     // EndChecking：无论是否是末位都进来。忽略ones_count_of_curr_bit，利用位运算特性来实现“最近3次是否为1”的记忆。利用最低3位。
     else if (timer2_isr_count >= 27)
     {
-        end_checking_container = (end_checking_container >> 1) + (myRX << 2);
+        end_checking_container >>= 1;
+        if (myRX)
+        {
+            end_checking_container |= 0x04;
+        }
+        else
+        {
+            end_checking_container &= 0xfb;
+        }
         if ((end_checking_container & 0x07) == 0x07) // 最近3次均为1
         {
             // 运行到“将字节推送到output或遗弃”环节

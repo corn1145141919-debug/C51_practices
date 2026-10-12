@@ -7,18 +7,29 @@
 
 void main()
 {
-    unsigned char test = 0;
+    unsigned char ring_buffer[4];
+    unsigned char ring_buffer_head = 0;
+    unsigned char ring_buffer_tail = 0;
+    unsigned long temp_output = 0x00;
+
     UART_Receiver_init();
     UART_Transmitter_init();
     Timer0_Init();
     
     while(1)
     {
-        // 反复执行可能会有点耗费性能
-        // 可能违背了保护现场的原则 但是这确实是一个人为设计的中断后就会被改变的变量
-        DigitalTube_Display_hex_unsigned_long(test);
-        UART_Transmitter_SendByte(test);
-        delay(244); // 在加速模式下实际上是0.122秒
-        test++;
+        if (UART_Receiver_output_flag)
+        {
+            // 推掉旧有失败计数，将最旧字节推到即将被覆盖的位置；最低位字节自然为0x00，能确保buffer内容被可信加入并且不污染既有数据
+            temp_output = UART_Receiver_data_output_buffer + temp_output << 8;
+            UART_Receiver_output_flag = 0; // 及时标志output已被利用
+
+            // 16进制下数码管最高2位（1个字节）显示失败次数
+            // 先抹除最高位字节，然后再加入数据
+            temp_output = temp_output & 0x00ffffff + UART_Receiver_abandoned_byte_count << 24;
+            DigitalTube_Display_hex_unsigned_long(temp_output);
+
+            UART_Transmitter_SendByte(temp_output); // 利用低位截断直接发送刚刚接收到的数据——发送失败也无所谓，单片机自己会显示
+        }
     }
 }

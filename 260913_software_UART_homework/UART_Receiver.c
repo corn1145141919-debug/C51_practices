@@ -12,8 +12,8 @@
 // public: // bro以为自己在写C++
 
 volatile unsigned char UART_Receiver_data_output_buffer = 0x00;
-volatile unsigned char is_output_buffer_occupied = 0;
-volatile unsigned char abandoned_byte_count = 0;
+volatile unsigned char UART_Receiver_is_output_buffer_occupied = 0;
+volatile unsigned char UART_Receiver_abandoned_byte_count = 0;
 
 // private:
 
@@ -146,9 +146,9 @@ void UART_Receiver_Timer2_ISR() INTERRUPT(5)
         if ((end_checking_container & 0x07) == 0x07) // 最近3次均为1
         {
             // 运行到“将字节推送到output或遗弃”环节
-            if (is_output_buffer_occupied)
+            if (UART_Receiver_is_output_buffer_occupied)
             {
-                abandoned_byte_count++;
+                UART_Receiver_abandoned_byte_count++;
             }
             else
             {

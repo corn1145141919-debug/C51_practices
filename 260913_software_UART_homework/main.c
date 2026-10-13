@@ -16,7 +16,7 @@ void main()
     UART_Transmitter_init();
     Timer0_Init();
 
-    UART_Transmitter_SendByte(temp_output); // 初始化：使数码管最早显示正确数字
+    DigitalTube_Dispay_hex_unsigned_long(temp_output);
     
     while(1)
     {

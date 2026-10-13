@@ -146,7 +146,7 @@ void DigitalTube_Display_decimal_int(int input)
 }
 
 // 为了这个项目加的
-void DigitalTube_Dispay_hex_unsigned_char(unsigned char input)
+void DigitalTube_Display_hex_unsigned_char(unsigned char input)
 {
     buffer[1] = table[(input >> 4)];
     buffer[0] = table[(input & 0x0f)];

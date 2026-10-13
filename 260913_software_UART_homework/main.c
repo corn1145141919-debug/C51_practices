@@ -16,7 +16,7 @@ void main()
     UART_Transmitter_init();
     Timer0_Init();
 
-    DigitalTube_Dispay_hex_unsigned_long(temp_output);
+    DigitalTube_Display_hex_unsigned_long(temp_output);
     
     while(1)
     {

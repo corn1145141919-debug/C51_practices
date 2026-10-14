@@ -17,6 +17,6 @@ void Timer0_Init()
     EA = 1;
 
     // 最低优先级 00
-    IPH |= 0x00;
+    IPH &= 0xfd;
     PX0 = 0;
 }

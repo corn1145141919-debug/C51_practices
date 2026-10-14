@@ -34,7 +34,7 @@ void UART_Transmitter_init()
     tx_busy = 0; // 默认没有发送；这在硬件上是中断寄存器设置
 
     // 优先级 10
-    IPH &= 0x80;
+    IPH |= 0x80;
     PT1 = 0;
     
 }

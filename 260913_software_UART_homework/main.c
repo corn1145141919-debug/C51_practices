@@ -29,7 +29,7 @@ void main()
 
             // 16进制下数码管最高2位（1个字节）显示失败次数
             // 先抹除最高位字节，然后再加入数据
-            temp_output = temp_output & 0x00ffffff + (UART_Receiver_abandoned_byte_count << 24);
+            temp_output = (temp_output & 0x00ffffff) + (((unsigned long)UART_Receiver_abandoned_byte_count) << 24);
             DigitalTube_Display_hex_unsigned_long(temp_output);
 
             UART_Transmitter_SendByte(temp_output); // 利用低位截断直接发送刚刚接收到的数据——发送失败也无所谓，单片机自己会显示

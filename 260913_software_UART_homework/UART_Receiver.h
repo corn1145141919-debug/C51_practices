@@ -1,6 +1,11 @@
 #ifndef __UART_RECEIVER__H__
 #define __UART_RECEIVER__H__
 
+/**
+ * 说明：
+ * 本模块不会忽略上电初期内部的噪声。如果需要忽略，请模块使用者在外部逻辑中自己实现这一功能。
+ */
+
 // 该模块对外部暴露的接口，外部真正读取数据的地方。
 extern volatile unsigned char UART_Receiver_data_output_buffer;
 // “成功地”（下文将定义怎样才算成功）将字节推入上面那个output buffer之后，该模块还会将该变量置为1，

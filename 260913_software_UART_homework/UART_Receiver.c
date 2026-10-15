@@ -100,6 +100,8 @@ void UART_Receiver_Timer2_ISR() INTERRUPT(5)
     static unsigned char is_one;
     static unsigned char end_checking_container = 0x00;
 
+    TF2 = 0; // 软件自己对TF2清零 // 尝试最早清零
+
     // 每个bit，无论是在StartChecking阶段还是Receiving阶段，都需要检测该位中0和1的情况（我们这里计数1）。
     // 它可能是最频繁被调用的语句之一，所以我们放在外边。
     // 不知道这样的处理是否最优。
@@ -172,5 +174,4 @@ void UART_Receiver_Timer2_ISR() INTERRUPT(5)
     }
 
     timer2_isr_count++;
-    TF2 = 0; // 软件自己对TF2清零
 }

@@ -18,5 +18,5 @@ void Timer0_Init()
 
     // 最低优先级 00
     IPH &= 0xfd;
-    PX0 = 0;
+    PT0 = 0; // 应该是Timer0！
 }

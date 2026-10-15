@@ -79,6 +79,8 @@ TODO
 
 ### 10月15日
 - 修改优先级之后最新一次实验已经完成。接收到的字节还是有问题。
+- 记录一个有趣的现象：RST键按得时间越长，开头接收到的噪声字节就越长，数码管最高字节显示的“未及时处理数”也就越多。如果你RST按键按得足够干净利落，新启动时甚至一个字符串都没有。以后可以研究一下开发板原理图看这是怎么回事。
+- 第二次实验：只重设TF2，同一字节低4位稳定了很多，高4位暂时还有问题（但是稳定）。同时发送多个字节，只会返回一个字节，并且这个字节似乎与发送的首个字节有相关性
 
 ## 附录
 ### 调试软件 UART 发送端过程中遇到问题时进行的三次实验
@@ -1843,4 +1845,187 @@ TODO
 [19:16:01.804]接收←DC 
 [19:16:02.307]发送→78 
 [19:16:02.321]接收←DC 
+```
+### 10月15日第2次实验非正式：记录噪声现象（不务正业）
+```
+[19:30:47.804]接收←FF FF FF 
+[19:30:52.804]接收←E0 00 FF 00 00 FF FC F8 00 FC FE FF F8 00 FE FF 
+                    FE FC F8 FC FC FE FF FC FE FC F0 FE FC C0 FF FC 
+                    FF FC F8 FF FE FF F0 00 FF FE FF F8 FF FF FF FF 
+                    C0 FF FF FC FF FF FF F8 FC FF FF FF FF FC FF FF 
+                    FE FF C0 FE C0 FF FE FC 00 FF FF FE FE C0 FF FF 
+                    00 FF FE FF FC F8 FF FF 80 FF FF FF FF FF FF FF 
+[19:30:54.845]接收←FF FF FF FF FF FF FF FF FF FF FF FF FF FF FE FF 
+                    FE FF FF FE FF FF FF F8 FC FF FF FF FF FF 
+[19:30:55.800]接收←F8 FF FF FF FC FF FC FE FE FF FE FF F9 FE FF FF 
+                    FF FE FF FF FF FF FC FC FF FF FF FF FF FF 
+[19:30:57.264]接收←FF FF FE FE FF FF F8 FF FF FC FF FE FF FF FF FF 
+                    FC FF FF FF FF 
+[19:30:59.451]接收←FC 00 00 FE FC 00 FE FE FF 00 E0 FF 00 FC FF FF 
+                    FC 80 FE FE FC FF 00 00 FE 00 FE F8 FF FE 00 F8 
+                    FE FE FE FF FC F8 FF FE FF 00 FE FE FE FE F8 00 
+                    FE 00 FF 80 FF E6 FF 00 FF C0 FC FC 00 FF FF FF 
+                    FC 00 00 FC 00 FF FC 00 00 F8 FC FF FF FF FF FF 
+                    FF FC FE 00 C0 FF F8 FF FC 00 00 FE FC FC FF C0 
+                    FE F0 FF C0 80 FF 00 FE F8 FC FC FF FF FF FC FF 
+                    FE FF FC FF 
+[19:31:05.987]接收←0C F8 F8 80 00 00 00 00 E0 00 00 FE 00 00 FE 00 
+                    00 00 FE 00 FF 00 FE F8 FC FE FC FE FE 00 C0 00 
+                    00 F0 00 FE FE FE FE FE 00 FE 00 FE FE 00 00 00 
+                    FE 00 F8 C0 80 FE 00 00 FC FE FE F0 FC 3C 84 C0 
+                    F8 FE 00 FE FE FC FF FE FE FF FE FC C7 00 FC FF 
+                    FE FF 00 FE F8 FE 00 FF C0 FE C0 C0 FE FE F8 00 
+                    00 FC 04 FF FE 22 00 FC E0 00 FE 00 E0 FC 00 00 
+                    FF FF FC FC 00 FE F8 FC FE FF 80 FE FE FF FE FF 
+                    FF F8 FF FC FF FF FF FF FF FC FC FF FF 00 FF FC 
+                    FC FF FF FF FC FF FC FE FF FF 
+[19:31:14.618]接收←08 00 FE FC 00 E0 FE 80 C0 30 FF 00 FC 00 FC 80 
+                    FF 00 00 E0 FE F8 FE 00 FE FE FE FE 00 FE FC FC 
+                    FC F2 FE 00 FC FE 00 FF F0 00 00 88 FE 00 FC FC 
+                    FE FF 00 00 FE FF 00 FE 00 FE 00 FE 00 00 C0 FE 
+                    00 00 00 C0 80 FF 80 00 00 00 00 F8 00 FE FF 00 
+                    FF FF FF 18 FE 00 00 00 F0 F8 FC FE FF FE 00 FF 
+                    FD 00 00 FF 00 FC FC FF FF FF FE C0 FE FF 00 FF 
+                    F0 FF 00 FF FF F8 FF FE FE FC 00 FE FE FF FF FC 
+                    FC F8 FF FC FF FF FF FF FC 
+[19:31:19.092]接收←00 C0 FC FE 00 80 00 FE FC FC 00 00 FC 00 00 00 
+                    00 00 FE FC FC 00 00 C0 C0 C0 FF FE 00 00 FE 00 
+                    FE 00 00 FF FF FC FC FC 00 00 00 FC 00 00 00 C0 
+                    C0 FF FC FE 00 00 FE F8 F8 00 FE FF 00 FF 00 FE 
+                    00 08 FE F9 FF 00 FE C0 FE FC FE 00 FF FC FC FC 
+                    F8 80 FE FC FE FC 80 FE FF FC FF 00 80 FE FC FC 
+                    00 F8 FF FF F4 00 FE FF FF FF F8 F8 FC C0 FF FF 
+                    00 FF FE FF F8 FF FF FC FF FC FC FC FF FF FC 
+[19:31:25.186]接收←00 00 FE 00 FC 00 C0 00 FE 00 FF D8 FF FF FF FE 
+                    00 FC FE FF FC FF FC FF FC FE FE FC FC 00 FE 00 
+                    FE FE FC 00 FF 80 FE C0 FF FE FC FC 00 00 FC FF 
+                    FE FC FF 00 FC FE 00 FF FE 00 F8 00 FF FC 00 FC 
+                    FC FC C0 FF FF FC FC 00 FF FE F8 00 FF FC F8 F9 
+                    FC FF FF FC FF FE FC FE FE FF FF 
+[19:31:32.184]接收←FC 00 00 00 00 FE FC 00 80 FE 00 F8 F8 F0 FC FF 
+                    00 FF F0 FE F0 00 F0 00 FE 00 FE 80 00 00 C0 F0 
+                    FC 00 FE FE 00 00 00 F8 00 FF F8 00 FC FC 00 FF 
+                    00 00 00 00 80 FC FF FE FE C0 FE FC FF FE 00 FE 
+                    FE FC FE FE FE 00 FE FF 00 80 FE FC FE FC 00 00 
+                    FC F8 FE F8 FE FE F8 FE FF FE FE E0 FF FE FE FF 
+                    80 FE 00 FE 18 FC FF FE 00 FF FE FF FC C0 FF FF 
+                    FC FE FF FF FE FE FC FF FC FC FC 
+[19:31:39.082]接收←FF 
+[19:31:41.230]接收←FF FF FF 
+[19:31:41.869]接收←FF FF 
+[19:31:41.993]接收←FF 
+[19:31:42.352]接收←FC FF FE FF FE FC FF FE FE FF FF FF FC 
+[19:31:42.508]接收←FE FE FE FF FF 
+[19:31:46.717]接收←7F 00 00 00 02 00 80 00 00 1C F8 00 FE FC 00 00 
+                    00 00 FC FE 00 FE FF 00 C0 00 00 00 F8 00 FF FE 
+                    00 00 FE 00 FF FC F0 FE 80 FC FC F8 00 FF FE 00 
+                    00 FC 00 00 00 0F 00 FE 00 FE FE FE FE FC FC FF 
+                    FE FF FF FE FE 3B FC F0 00 FC 00 C0 FE FE FF FE 
+                    00 FC 00 F8 FF 00 FF FE F3 FE FC FC 00 F8 F8 FE 
+                    FE 00 C0 FC FE FE FE FF FC 00 FC 0E 00 FE FC FF 
+                    C0 FF FC F8 FE FC FC FF 00 F6 FE FE FC FF F8 F8 
+                    FE F8 FC 00 FE FC FC FC FF FE FC FC FC FC FC FF 
+[19:31:50.462]接收←FF FF 
+[19:31:50.540]接收←FF 
+[19:31:50.884]接收←FF FF FC FF FF 
+[19:31:50.979]接收←FF FF FF FC 
+[19:31:52.179]接收←00 F8 F8 FE FF FF FE FE FE FC 80 FC FF FC FC F0 
+                    80 00 08 00 FF FF 80 FF FE 00 00 FF FE FE F8 00 
+                    FE 1F FE 80 FF 00 00 E0 00 FE 00 C0 FE FF FC FC 
+                    FC FF 00 FE FE FC FF 00 FE 80 FF FE 00 E0 FE FE 
+                    FC 00 FF 00 FE F8 FF FC FF FF FF FF FF FF FE FF 
+                    F8 FC FC FF FE FF FC F9 FC FC FC FE FF FC FF FC 
+```
+### 10月15日第二次实验（正式）：准确性明显提高
+```
+[19:35:21.913]发送→78 
+[19:35:21.920]接收←B8 
+[19:35:26.070]发送→23 
+[19:35:26.083]接收←83 
+[19:35:54.289]发送→00 
+[19:35:54.308]接收←80 
+[19:35:57.643]发送→01 
+[19:35:57.654]接收←81 
+[19:36:00.378]发送→02 
+[19:36:00.397]接收←82 
+[19:36:05.061]发送→03 
+[19:36:05.079]接收←83 
+[19:36:09.399]发送→80 
+[19:36:09.408]接收←C0 
+[19:36:13.014]发送→82 
+[19:36:13.024]接收←C2 
+[19:36:17.023]发送→86 
+[19:36:17.042]接收←C6 
+[19:36:22.253]发送→90 
+[19:36:22.264]接收←D0 
+[19:36:25.300]发送→92 
+[19:36:25.308]接收←C2 
+[19:36:30.828]发送→11 45 14 
+[19:36:30.843]接收←81 
+[19:36:40.096]发送→11 45 14 
+[19:36:40.117]接收←91 
+[19:36:40.875]发送→11 45 14 
+[19:36:40.896]接收←81 
+[19:36:41.548]发送→11 45 14 
+[19:36:41.565]接收←81 
+[19:36:41.995]发送→11 45 14 
+[19:36:42.014]接收←81 
+[19:36:42.306]发送→11 45 14 
+[19:36:42.327]接收←81 
+[19:36:42.626]发送→11 45 14 
+[19:36:42.640]接收←81 
+[19:36:42.938]发送→11 45 14 
+[19:36:42.952]接收←81 
+[19:36:43.164]发送→11 45 14 
+[19:36:43.184]接收←81 
+[19:36:49.648]发送→19 19 81 00 
+[19:36:49.670]接收←89 
+[19:36:50.314]发送→19 19 81 00 
+[19:36:50.325]接收←89 
+[19:36:50.722]发送→19 19 81 00 
+[19:36:50.730]接收←89 
+[19:36:51.023]发送→19 19 81 00 
+[19:36:51.043]接收←89 
+[19:36:51.185]发送→19 19 81 00 
+[19:36:51.198]接收←89 
+[19:36:51.716]发送→19 19 81 00 
+[19:36:51.728]接收←89 
+[19:36:51.893]发送→19 19 81 00 
+[19:36:51.916]接收←89 
+[19:36:52.609]发送→19 19 81 00 
+[19:36:52.632]接收←89 
+[19:37:03.902]发送→FF 
+[19:37:03.915]接收←FF 
+[19:37:09.799]发送→0F 
+[19:37:09.818]接收←8F 
+[19:37:14.333]发送→88 
+[19:37:14.352]接收←C8 
+[19:37:18.010]发送→C8 
+[19:37:18.029]接收←E8 
+[19:37:22.319]发送→E8 
+[19:37:22.330]接收←F8 
+[19:37:23.359]发送→E8 
+[19:37:23.375]接收←F8 
+[19:37:23.600]发送→E8 
+[19:37:23.610]接收←F8 
+[19:37:23.876]发送→E8 
+[19:37:23.893]接收←F8 
+[19:37:27.808]发送→E9 
+[19:37:27.820]接收←F9 
+[19:37:28.205]发送→E9 
+[19:37:28.224]接收←F9 
+[19:37:31.839]发送→59 
+[19:37:31.851]接收←A9 
+[19:37:47.117]发送→20 26 10 15 FF 
+[19:37:47.141]接收←90 
+[19:37:50.520]发送→20 26 10 15 FF 
+[19:37:50.535]接收←90 
+[19:37:53.453]发送→26 10 15 FF 
+[19:37:53.475]接收←96 
+[19:37:57.770]发送→10 15 FF 
+[19:37:57.778]接收←80 
+[19:38:00.334]发送→15 FF 
+[19:38:00.353]接收←85 
+[19:38:03.512]发送→FF 
+[19:38:03.523]接收←FF 
 ```

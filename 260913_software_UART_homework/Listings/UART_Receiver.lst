@@ -1,0 +1,499 @@
+C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 20:00:34 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE UART_RECEIVER
+OBJECT MODULE PLACED IN .\Objects\UART_Receiver.obj
+COMPILER INVOKED BY: D:\KeilV5\C51\BIN\C51.EXE UART_Receiver.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND CODE SYMBOLS 
+                    -PRINT(.\Listings\UART_Receiver.lst) TABS(2) OBJECT(.\Objects\UART_Receiver.obj)
+
+line level    source
+
+   1          #include <REGX52.H>
+   2          #include "digital_tube.h"
+   3          
+   4          // 能让 VS Code 的 IntelliSense 和 Keil 同时正确读取（需要安装Keil Assistant插件）
+   5          // 理论上来讲，在把这个软件发布给任何只有Keil软件的用户时，这些源代码都能
+             -被正确编译
+   6          #ifndef __VSCODE_C51__
+   7          #define INTERRUPT(x) interrupt x
+   8          #else
+              #define INTERRUPT(x)
+              #endif
+  11          
+  12          // public: // bro以为自己在写C++
+  13          
+  14          volatile unsigned char UART_Receiver_data_output_buffer = 0x00;
+  15          volatile unsigned char UART_Receiver_output_flag = 0;
+  16          volatile unsigned char UART_Receiver_abandoned_byte_count = 0;
+  17          
+  18          // private:
+  19          
+  20          sfr IPH = 0xb7;
+  21          // ——作为UART Receiver在内部操纵时直接操作的buffer（相当于原生硬件UART中的读SB
+             -UF）。不对外部暴露。
+  22          static unsigned char UART_Receiver_private_received_data_buffer;
+  23          sbit receiver_idle = 0xa8; // 给EX0起别名
+  24          sbit myRX = 0xb2; // 接收传到P3_2，这里起个别名并且方便修改
+  25          
+  26          // 由于一些按理来说封装在interrupt 5中的变量的初始化有的要由interrupt 0执行（或
+             -者首次执行），
+  27          // 我们必须把本来应该封装给interrupt 5的一些变量放在外部。
+  28          // 用计数实现状态机模式图中相当一部分的状态转移。这里我们规定0、1、2对应S
+             -tartChecking；3到26是正常接收；27到29（或者后续更多）是EndChecking
+  29          static unsigned char timer2_isr_count = 0;
+  30          static unsigned char ones_count_of_curr_bit = 0;
+  31          
+  32          // public:
+  33          
+  34          void UART_Receiver_init(void)
+  35          {
+  36   1          EA = 1; // 允许中断
+  37   1          ES = 0; // 禁止来自原生硬件 UART 的中断
+  38   1      
+  39   1          // 下降沿中断设置范式
+  40   1          receiver_idle = 1; // 允许INT0中断； // 主要通过这个来设置
+  41   1          IT0 = 1; // 使用下降沿中断
+  42   1      
+  43   1          // 定时器相关寄存器
+  44   1          // 以下为负责接收的的 Timer2 初始化
+  45   1      
+  46   1          // 定时器允许与清零与模式设定（16位自动重装）
+  47   1          T2CON = 0x04;
+  48   1          // TF2 = 0; // 这条代码被上面包含了
+  49   1          // 注意后续代码中必须手动将TF2清零！
+  50   1      
+C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 20:00:34 PAGE 2   
+
+  51   1          // 定时器2本身发出(3 * 9600)bps@11.0592MHz
+  52   1          // 定时器初值（注意每次重设相位的时候都需要该操作）
+  53   1          TH2 = 0xff;
+  54   1          TL2 = 0xc0;
+  55   1          // 定时器重装值
+  56   1          RCAP2H = 0xff;
+  57   1          RCAP2L = 0xc0;
+  58   1      
+  59   1          // 先禁止定时器中断
+  60   1          ET2 = 0;
+  61   1          
+  62   1          // 下降沿和定时器2中断同时设定为最高优先级 11
+  63   1          IPH |= 0x21; // 注意，设置1需要用或，设置0需要用与!
+  64   1          PT2 = 1;
+  65   1          PX0 = 1;
+  66   1      
+  67   1          UART_Receiver_private_received_data_buffer = 0x00;
+  68   1      }
+  69          
+  70          // private:
+  71          
+  72          void UART_Receiver_FallingEdge_ISR() INTERRUPT(0) // 不是计时器中断而是串口中断
+  73          {
+  74   1          receiver_idle = 0;
+  75   1      
+  76   1          // 重设相位并且在软件层面上将标志位清零
+  77   1          TH2 = 0xff;
+  78   1          TL2 = 0xc0;
+  79   1          TF2 = 0; // 并且在软件层面上将该标志位清零（防御性地）
+  80   1          timer2_isr_count = 0;
+  81   1          ones_count_of_curr_bit = 0;
+  82   1          ET2 = 1; // 这样应该会立即进入 bit 检测的ISR
+  83   1      }
+  84          
+  85          // 把所有退出所需操作封装成函数。之后假如遇到性能瓶颈，会复制回去。
+  86          void UART_Receiver_Back2Idle(void)
+  87          {
+  88   1          ET2 = 0;
+  89   1          // 由于要退出Timer2的ISR，我们必须处理中断位
+  90   1          TF2 = 0;
+  91   1      
+  92   1          ones_count_of_curr_bit = 0; // 防御性地重设
+  93   1          timer2_isr_count = 0;
+  94   1      
+  95   1          receiver_idle = 1;
+  96   1      }
+  97          
+  98          void UART_Receiver_Timer2_ISR() INTERRUPT(5)
+  99          {
+ 100   1          static unsigned char is_one;
+ 101   1          static unsigned char end_checking_container = 0x00;
+ 102   1      
+ 103   1          TF2 = 0; // 软件自己对TF2清零 // 尝试最早清零
+ 104   1      
+ 105   1          // 每个bit，无论是在StartChecking阶段还是Receiving阶段，都需要检测该位中0和1的
+             -情况（我们这里计数1）。
+ 106   1          // 它可能是最频繁被调用的语句之一，所以我们放在外边。
+ 107   1          // 不知道这样的处理是否最优。
+ 108   1          if (myRX)
+ 109   1          {
+ 110   2              ones_count_of_curr_bit++;
+ 111   2          }
+C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 20:00:34 PAGE 3   
+
+ 112   1      
+ 113   1          // 需要在每一位被接收完毕之后结算（EndChecking每一位都需要结算）。不同的�
+             -��态对应下列if-else语句不同的入口。
+ 114   1          // 末尾需要将ones_count_of_curr_bit清零。EndChecking例外。
+ 115   1      
+ 116   1          // StartChecking末位
+ 117   1          if (timer2_isr_count == 2)
+ 118   1          {
+ 119   2              // 对应流程图中的No：如果没有收到可靠的0则认为此处触发为误触。
+ 120   2              if (ones_count_of_curr_bit >= 2) // 2到3个1，不是期待的0，不可靠。如果改为“3个
+             -1触发”请将该行数字改为3。
+ 121   2              {
+ 122   3                  UART_Receiver_Back2Idle();
+ 123   3                  return;
+ 124   3              }
+ 125   2              // 对应流程图中的Yes：置零之后，下一次ISR被触发，自然进入receiving状态
+ 126   2              ones_count_of_curr_bit = 0;
+ 127   2          }
+ 128   1          // Receiving末位
+ 129   1          else if (timer2_isr_count % 3 == 2 && 3 < timer2_isr_count && timer2_isr_count <= 26) // 条件判断�
+             -��要保证是末位
+ 130   1          {
+ 131   2              // 先接收到的是最低位，即2^0位。计算可得当前位数为timer2_isr_count / 3 - 1�
+             -�
+ 132   2              if (ones_count_of_curr_bit >= 2) // 1
+ 133   2              {
+ 134   3                  UART_Receiver_private_received_data_buffer |= (0x01 << (timer2_isr_count / 3 - 1));
+ 135   3              }
+ 136   2              else // 0
+ 137   2              {
+ 138   3                  // 左移右移操作带1的数据比操作带0的数据更得心应手。因此我们先计�
+             -�出一个由1选中目标位置的量，再按位取反。
+ 139   3                  UART_Receiver_private_received_data_buffer &= ~(0x01 << (timer2_isr_count / 3 - 1));
+ 140   3              }
+ 141   2      
+ 142   2              ones_count_of_curr_bit = 0;
+ 143   2      
+ 144   2              // 当timer2_isr_count从26增加到27时，通过“该elif不被调用，下一个elif分支被�
+             -��用”实现到EndChecking的跳转。
+ 145   2              // 如果不是26，那么自然不会进行状态转移。
+ 146   2          }
+ 147   1          // EndChecking：无论是否是末位都进来。忽略ones_count_of_curr_bit，利用位运算特性
+             -来实现“最近3次是否为1”的记忆。利用最低3位。
+ 148   1          else if (timer2_isr_count >= 27)
+ 149   1          {
+ 150   2              end_checking_container >>= 1;
+ 151   2              if (myRX)
+ 152   2              {
+ 153   3                  end_checking_container |= 0x04;
+ 154   3              }
+ 155   2              else
+ 156   2              {
+ 157   3                  end_checking_container &= 0xfb;
+ 158   3              }
+ 159   2              if ((end_checking_container & 0x07) == 0x07) // 最近3次均为1
+ 160   2              {
+ 161   3                  // 运行到“将字节推送到output或遗弃”环节
+ 162   3                  if (UART_Receiver_output_flag) // 不能覆盖未被可靠读取的数据
+ 163   3                  {
+ 164   4                      UART_Receiver_abandoned_byte_count++; // 记录错误
+ 165   4                  }
+ 166   3                  else
+C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 20:00:34 PAGE 4   
+
+ 167   3                  {
+ 168   4                      UART_Receiver_data_output_buffer = UART_Receiver_private_received_data_buffer;
+ 169   4                      UART_Receiver_output_flag = 1;
+ 170   4                  }
+ 171   3                  UART_Receiver_Back2Idle();
+ 172   3                  return;
+ 173   3              }
+ 174   2          }
+ 175   1      
+ 176   1          timer2_isr_count++;
+ 177   1      }
+*** WARNING C280 IN LINE 100 OF UART_Receiver.c: 'is_one': unreferenced local variable
+C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 20:00:34 PAGE 5   
+
+ASSEMBLY LISTING OF GENERATED OBJECT CODE
+
+
+             ; FUNCTION UART_Receiver_init (BEGIN)
+                                           ; SOURCE LINE # 34
+                                           ; SOURCE LINE # 35
+                                           ; SOURCE LINE # 36
+0000 D2AF              SETB    EA
+                                           ; SOURCE LINE # 37
+0002 C2AC              CLR     ES
+                                           ; SOURCE LINE # 40
+0004 D2A8              SETB    receiver_idle
+                                           ; SOURCE LINE # 41
+0006 D288              SETB    IT0
+                                           ; SOURCE LINE # 47
+0008 75C804            MOV     T2CON,#04H
+                                           ; SOURCE LINE # 53
+000B 75CDFF            MOV     TH2,#0FFH
+                                           ; SOURCE LINE # 54
+000E 75CCC0            MOV     TL2,#0C0H
+                                           ; SOURCE LINE # 56
+0011 75CBFF            MOV     RCAP2H,#0FFH
+                                           ; SOURCE LINE # 57
+0014 75CAC0            MOV     RCAP2L,#0C0H
+                                           ; SOURCE LINE # 60
+0017 C2AD              CLR     ET2
+                                           ; SOURCE LINE # 63
+0019 43B721            ORL     IPH,#021H
+                                           ; SOURCE LINE # 64
+001C D2BD              SETB    PT2
+                                           ; SOURCE LINE # 65
+001E D2B8              SETB    PX0
+                                           ; SOURCE LINE # 67
+0020 E4                CLR     A
+0021 F500        R     MOV     UART_Receiver_private_received_data_buffer,A
+                                           ; SOURCE LINE # 68
+0023 22                RET     
+             ; FUNCTION UART_Receiver_init (END)
+
+             ; FUNCTION UART_Receiver_FallingEdge_ISR (BEGIN)
+                                           ; SOURCE LINE # 72
+                                           ; SOURCE LINE # 74
+0000 C2A8              CLR     receiver_idle
+                                           ; SOURCE LINE # 77
+0002 75CDFF            MOV     TH2,#0FFH
+                                           ; SOURCE LINE # 78
+0005 75CCC0            MOV     TL2,#0C0H
+                                           ; SOURCE LINE # 79
+0008 C2CF              CLR     TF2
+                                           ; SOURCE LINE # 80
+000A 750000      R     MOV     timer2_isr_count,#00H
+                                           ; SOURCE LINE # 81
+000D 750000      R     MOV     ones_count_of_curr_bit,#00H
+                                           ; SOURCE LINE # 82
+0010 D2AD              SETB    ET2
+                                           ; SOURCE LINE # 83
+0012 32                RETI    
+             ; FUNCTION UART_Receiver_FallingEdge_ISR (END)
+
+             ; FUNCTION UART_Receiver_Back2Idle (BEGIN)
+                                           ; SOURCE LINE # 86
+                                           ; SOURCE LINE # 87
+C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 20:00:34 PAGE 6   
+
+                                           ; SOURCE LINE # 88
+0000 C2AD              CLR     ET2
+                                           ; SOURCE LINE # 90
+0002 C2CF              CLR     TF2
+                                           ; SOURCE LINE # 92
+0004 E4                CLR     A
+0005 F500        R     MOV     ones_count_of_curr_bit,A
+                                           ; SOURCE LINE # 93
+0007 F500        R     MOV     timer2_isr_count,A
+                                           ; SOURCE LINE # 95
+0009 D2A8              SETB    receiver_idle
+                                           ; SOURCE LINE # 96
+000B 22                RET     
+             ; FUNCTION UART_Receiver_Back2Idle (END)
+
+             ; FUNCTION UART_Receiver_Timer2_ISR (BEGIN)
+0000 C0E0              PUSH    ACC
+0002 C0F0              PUSH    B
+0004 C0D0              PUSH    PSW
+0006 75D000            MOV     PSW,#00H
+0009 C000              PUSH    AR0
+000B C007              PUSH    AR7
+                                           ; SOURCE LINE # 98
+                                           ; SOURCE LINE # 103
+000D C2CF              CLR     TF2
+                                           ; SOURCE LINE # 108
+000F 30B202            JNB     myRX,?C0004
+                                           ; SOURCE LINE # 109
+                                           ; SOURCE LINE # 110
+0012 0500        R     INC     ones_count_of_curr_bit
+                                           ; SOURCE LINE # 111
+0014         ?C0004:
+                                           ; SOURCE LINE # 117
+0014 E500        R     MOV     A,timer2_isr_count
+0016 B4020A            CJNE    A,#02H,?C0005
+                                           ; SOURCE LINE # 118
+                                           ; SOURCE LINE # 120
+0019 E500        R     MOV     A,ones_count_of_curr_bit
+001B C3                CLR     C
+001C 9402              SUBB    A,#02H
+001E 4050              JC      ?C0024
+                                           ; SOURCE LINE # 121
+                                           ; SOURCE LINE # 122
+0020 020000      R     LJMP    ?C0023
+                                           ; SOURCE LINE # 124
+0023         ?C0005:
+                                           ; SOURCE LINE # 129
+0023 E500        R     MOV     A,timer2_isr_count
+0025 75F003            MOV     B,#03H
+0028 84                DIV     AB
+0029 E5F0              MOV     A,B
+002B 6402              XRL     A,#02H
+002D 7046              JNZ     ?C0009
+002F 7403              MOV     A,#03H
+0031 C3                CLR     C
+0032 9500        R     SUBB    A,timer2_isr_count
+0034 503F              JNC     ?C0009
+0036 E500        R     MOV     A,timer2_isr_count
+0038 941A              SUBB    A,#01AH
+003A 5039              JNC     ?C0009
+                                           ; SOURCE LINE # 130
+                                           ; SOURCE LINE # 132
+C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 20:00:34 PAGE 7   
+
+003C E500        R     MOV     A,ones_count_of_curr_bit
+003E C3                CLR     C
+003F 9402              SUBB    A,#02H
+0041 4017              JC      ?C0010
+                                           ; SOURCE LINE # 133
+                                           ; SOURCE LINE # 134
+0043 E500        R     MOV     A,timer2_isr_count
+0045 75F003            MOV     B,#03H
+0048 84                DIV     AB
+0049 14                DEC     A
+004A FF                MOV     R7,A
+004B 7401              MOV     A,#01H
+004D A807              MOV     R0,AR7
+004F 08                INC     R0
+0050 8002              SJMP    ?C0020
+0052         ?C0019:
+0052 C3                CLR     C
+0053 33                RLC     A
+0054         ?C0020:
+0054 D8FC              DJNZ    R0,?C0019
+0056 4200        R     ORL     UART_Receiver_private_received_data_buffer,A
+                                           ; SOURCE LINE # 135
+0058 8016              SJMP    ?C0011
+005A         ?C0010:
+                                           ; SOURCE LINE # 137
+                                           ; SOURCE LINE # 139
+005A E500        R     MOV     A,timer2_isr_count
+005C 75F003            MOV     B,#03H
+005F 84                DIV     AB
+0060 14                DEC     A
+0061 FF                MOV     R7,A
+0062 7401              MOV     A,#01H
+0064 A807              MOV     R0,AR7
+0066 08                INC     R0
+0067 8002              SJMP    ?C0022
+0069         ?C0021:
+0069 C3                CLR     C
+006A 33                RLC     A
+006B         ?C0022:
+006B D8FC              DJNZ    R0,?C0021
+006D F4                CPL     A
+006E 5200        R     ANL     UART_Receiver_private_received_data_buffer,A
+                                           ; SOURCE LINE # 140
+0070         ?C0011:
+                                           ; SOURCE LINE # 142
+0070         ?C0024:
+0070 750000      R     MOV     ones_count_of_curr_bit,#00H
+                                           ; SOURCE LINE # 146
+0073 8032              SJMP    ?C0008
+0075         ?C0009:
+                                           ; SOURCE LINE # 148
+0075 E500        R     MOV     A,timer2_isr_count
+0077 C3                CLR     C
+0078 941B              SUBB    A,#01BH
+007A 402B              JC      ?C0008
+                                           ; SOURCE LINE # 149
+                                           ; SOURCE LINE # 150
+007C E500        R     MOV     A,end_checking_container
+007E 13                RRC     A
+007F F500        R     MOV     end_checking_container,A
+                                           ; SOURCE LINE # 151
+0081 30B205            JNB     myRX,?C0014
+C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 20:00:34 PAGE 8   
+
+                                           ; SOURCE LINE # 152
+                                           ; SOURCE LINE # 153
+0084 430004      R     ORL     end_checking_container,#04H
+                                           ; SOURCE LINE # 154
+0087 8003              SJMP    ?C0015
+0089         ?C0014:
+                                           ; SOURCE LINE # 156
+                                           ; SOURCE LINE # 157
+0089 5300FB      R     ANL     end_checking_container,#0FBH
+                                           ; SOURCE LINE # 158
+008C         ?C0015:
+                                           ; SOURCE LINE # 159
+008C E500        R     MOV     A,end_checking_container
+008E 5407              ANL     A,#07H
+0090 FF                MOV     R7,A
+0091 BF0713            CJNE    R7,#07H,?C0008
+                                           ; SOURCE LINE # 160
+                                           ; SOURCE LINE # 162
+0094 E500        R     MOV     A,UART_Receiver_output_flag
+0096 6004              JZ      ?C0017
+                                           ; SOURCE LINE # 163
+                                           ; SOURCE LINE # 164
+0098 0500        R     INC     UART_Receiver_abandoned_byte_count
+                                           ; SOURCE LINE # 165
+009A 8006              SJMP    ?C0018
+009C         ?C0017:
+                                           ; SOURCE LINE # 167
+                                           ; SOURCE LINE # 168
+009C 850000      R     MOV     UART_Receiver_data_output_buffer,UART_Receiver_private_received_data_buffer
+                                           ; SOURCE LINE # 169
+009F 750001      R     MOV     UART_Receiver_output_flag,#01H
+                                           ; SOURCE LINE # 170
+00A2         ?C0018:
+                                           ; SOURCE LINE # 171
+00A2         ?C0023:
+00A2 120000      R     LCALL   UART_Receiver_Back2Idle
+00A5 8002              SJMP    ?C0007
+                                           ; SOURCE LINE # 173
+                                           ; SOURCE LINE # 174
+00A7         ?C0008:
+                                           ; SOURCE LINE # 176
+00A7 0500        R     INC     timer2_isr_count
+                                           ; SOURCE LINE # 177
+00A9         ?C0007:
+00A9 D007              POP     AR7
+00AB D000              POP     AR0
+00AD D0D0              POP     PSW
+00AF D0F0              POP     B
+00B1 D0E0              POP     ACC
+00B3 32                RETI    
+             ; FUNCTION UART_Receiver_Timer2_ISR (END)
+
+C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 20:00:34 PAGE 9   
+
+NAME                                    CLASS   MSPACE  TYPE    OFFSET  SIZE
+====                                    =====   ======  ====    ======  ====
+
+
+UART_Receiver_abandoned_byte_count . .  PUBLIC   DATA   U_CHAR   0002H  1
+EA . . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00AFH  1
+myRX . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00B2H  1
+timer2_isr_count . . . . . . . . . . .  STATIC   DATA   U_CHAR   0003H  1
+ES . . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00ACH  1
+RCAP2H . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00CBH  1
+RCAP2L . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00CAH  1
+ones_count_of_curr_bit . . . . . . . .  STATIC   DATA   U_CHAR   0004H  1
+UART_Receiver_Timer2_ISR . . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+  is_one . . . . . . . . . . . . . . .  STATIC   DATA   U_CHAR   0000H  1
+  end_checking_container . . . . . . .  STATIC   DATA   U_CHAR   0001H  1
+UART_Receiver_FallingEdge_ISR. . . . .  PUBLIC   CODE   PROC     0000H  -----
+UART_Receiver_private_received_data_bu  STATIC   DATA   U_CHAR   0005H  1
+UART_Receiver_data_output_buffer . . .  PUBLIC   DATA   U_CHAR   0006H  1
+ET2. . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00ADH  1
+TF2. . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00CFH  1
+IT0. . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      0088H  1
+TH2. . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00CDH  1
+TL2. . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00CCH  1
+PT2. . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00BDH  1
+PX0. . . . . . . . . . . . . . . . . .  ABSBIT   -----  BIT      00B8H  1
+receiver_idle. . . . . . . . . . . . .  ABSBIT   -----  BIT      00A8H  1
+UART_Receiver_Back2Idle. . . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+IPH. . . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00B7H  1
+T2CON. . . . . . . . . . . . . . . . .  SFR      DATA   U_CHAR   00C8H  1
+UART_Receiver_output_flag. . . . . . .  PUBLIC   DATA   U_CHAR   0007H  1
+UART_Receiver_init . . . . . . . . . .  PUBLIC   CODE   PROC     0000H  -----
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    247    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      8    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

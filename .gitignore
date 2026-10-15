@@ -13,3 +13,8 @@
 *.lst
 *.m51
 *.lnp
+
+# 仅放行软件 UART 项目的 UART_Receiver.lst 文件
+!260913_software_UART_homework/Listings/
+260913_software_UART_homework/Listings/*.lst
+!260913_software_UART_homework/Listings/UART_Receiver.lst

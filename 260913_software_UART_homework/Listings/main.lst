@@ -1,4 +1,4 @@
-C51 COMPILER V9.54   MAIN                                                                  10/15/2026 21:40:20 PAGE 1   
+C51 COMPILER V9.54   MAIN                                                                  10/15/2026 22:32:25 PAGE 1   
 
 
 C51 COMPILER V9.54, COMPILATION OF MODULE MAIN
@@ -21,36 +21,40 @@ line level    source
   11   1          unsigned char ring_buffer_head = 0;
   12   1          unsigned char ring_buffer_tail = 0;
   13   1          unsigned long temp_output = 0x00000000;
-  14   1      
-  15   1          UART_Receiver_init();
-  16   1          UART_Transmitter_init();
-  17   1          Timer0_Init();
-  18   1      
-  19   1          DigitalTube_Display_hex_unsigned_long(temp_output);
-  20   1          
-  21   1          while(1)
-  22   1          {
-  23   2              if (UART_Receiver_output_flag)
-  24   2              {
-  25   3                  // 推掉旧有失败计数，将最旧字节推到即将被覆盖的位置；最低位字节�
+  14   1          unsigned char received_data = 0;
+  15   1      
+  16   1          UART_Receiver_init();
+  17   1          UART_Transmitter_init();
+  18   1          Timer0_Init();
+  19   1      
+  20   1          DigitalTube_Display_hex_unsigned_long(temp_output);
+  21   1          
+  22   1          while(1)
+  23   1          {
+  24   2              if (UART_Receiver_output_flag)
+  25   2              {
+  26   3                  // 推掉旧有失败计数，将最旧字节推到即将被覆盖的位置；最低位字节�
              -��然为0x00，能确保buffer内容被可信加入并且不污染既有数据
-  26   3                  // 注意：加法优先级比位运算高！以后涉及位运算都需要加括号！
-  27   3                  temp_output = UART_Receiver_data_output_buffer + (temp_output << 8);
-  28   3                  UART_Receiver_output_flag = 0; // 及时标志output已被利用
-  29   3      
-  30   3                  // 16进制下数码管最高2位（1个字节）显示失败次数
-  31   3                  // 先抹除最高位字节，然后再加入数据
-  32   3                  temp_output = (temp_output & 0x00ffffff) + (((unsigned long)UART_Receiver_abandoned_byte_count
+  27   3                  // 注意：加法优先级比位运算高！以后涉及位运算都需要加括号！
+  28   3                  // 此处使用实时性更好的8位运算，减少对于寄存器的占用
+  29   3                  received_data = UART_Receiver_data_output_buffer;
+  30   3                  UART_Receiver_output_flag = 0; // 及时标志output已被利用
+  31   3      
+  32   3                  temp_output = received_data + (temp_output << 8);
+  33   3      
+  34   3                  // 16进制下数码管最高2位（1个字节）显示失败次数
+  35   3                  // 先抹除最高位字节，然后再加入数据
+  36   3                  temp_output = (temp_output & 0x00ffffff) + (((unsigned long)UART_Receiver_abandoned_byte_count
              -) << 24);
-  33   3                  DigitalTube_Display_hex_unsigned_long(temp_output);
-  34   3      
-  35   3                  UART_Transmitter_SendByte(temp_output); // 利用低位截断直接发送刚刚接收到的数
+  37   3                  DigitalTube_Display_hex_unsigned_long(temp_output);
+  38   3      
+  39   3                  UART_Transmitter_SendByte(temp_output); // 利用低位截断直接发送刚刚接收到的数
              -据——发送失败也无所谓，单片机自己会显示
-  36   3              }
-  37   2          }
-  38   1      }
+  40   3              }
+  41   2          }
+  42   1      }
 *** WARNING C280 IN LINE 10 OF main.c: 'ring_buffer': unreferenced local variable
-C51 COMPILER V9.54   MAIN                                                                  10/15/2026 21:40:20 PAGE 2   
+C51 COMPILER V9.54   MAIN                                                                  10/15/2026 22:32:25 PAGE 2   
 
 ASSEMBLY LISTING OF GENERATED OBJECT CODE
 
@@ -68,101 +72,105 @@ ASSEMBLY LISTING OF GENERATED OBJECT CODE
 0007 F500        R     MOV     temp_output+02H,A
 0009 F500        R     MOV     temp_output+01H,A
 000B F500        R     MOV     temp_output,A
-                                           ; SOURCE LINE # 15
-000D 120000      E     LCALL   UART_Receiver_init
+                                           ; SOURCE LINE # 14
+000D F500        R     MOV     received_data,A
                                            ; SOURCE LINE # 16
-0010 120000      E     LCALL   UART_Transmitter_init
+000F 120000      E     LCALL   UART_Receiver_init
                                            ; SOURCE LINE # 17
-0013 120000      E     LCALL   Timer0_Init
-                                           ; SOURCE LINE # 19
-0016 AF00        R     MOV     R7,temp_output+03H
-0018 AE00        R     MOV     R6,temp_output+02H
-001A AD00        R     MOV     R5,temp_output+01H
-001C AC00        R     MOV     R4,temp_output
-001E 120000      E     LCALL   _DigitalTube_Display_hex_unsigned_long
-0021         ?C0001:
-                                           ; SOURCE LINE # 21
+0012 120000      E     LCALL   UART_Transmitter_init
+                                           ; SOURCE LINE # 18
+0015 120000      E     LCALL   Timer0_Init
+                                           ; SOURCE LINE # 20
+0018 AF00        R     MOV     R7,temp_output+03H
+001A AE00        R     MOV     R6,temp_output+02H
+001C AD00        R     MOV     R5,temp_output+01H
+001E AC00        R     MOV     R4,temp_output
+0020 120000      E     LCALL   _DigitalTube_Display_hex_unsigned_long
+0023         ?C0001:
                                            ; SOURCE LINE # 22
                                            ; SOURCE LINE # 23
-0021 E500        E     MOV     A,UART_Receiver_output_flag
-0023 60FC              JZ      ?C0001
                                            ; SOURCE LINE # 24
-                                           ; SOURCE LINE # 27
-0025 AF00        R     MOV     R7,temp_output+03H
-0027 AE00        R     MOV     R6,temp_output+02H
-0029 AD00        R     MOV     R5,temp_output+01H
-002B AC00        R     MOV     R4,temp_output
-002D 7808              MOV     R0,#08H
-002F 120000      E     LCALL   ?C?LSHL
-0032 A804              MOV     R0,AR4
-0034 A905              MOV     R1,AR5
-0036 AA06              MOV     R2,AR6
-0038 AB07              MOV     R3,AR7
-003A AF00        E     MOV     R7,UART_Receiver_data_output_buffer
-003C E4                CLR     A
-003D FC                MOV     R4,A
-003E FD                MOV     R5,A
-003F FE                MOV     R6,A
-0040 EB                MOV     A,R3
-0041 2F                ADD     A,R7
-0042 F500        R     MOV     temp_output+03H,A
-0044 EE                MOV     A,R6
-0045 3A                ADDC    A,R2
-0046 F500        R     MOV     temp_output+02H,A
-0048 ED                MOV     A,R5
-0049 39                ADDC    A,R1
-004A F500        R     MOV     temp_output+01H,A
-004C EC                MOV     A,R4
-004D 38                ADDC    A,R0
-C51 COMPILER V9.54   MAIN                                                                  10/15/2026 21:40:20 PAGE 3   
-
-004E F500        R     MOV     temp_output,A
-                                           ; SOURCE LINE # 28
-0050 E4                CLR     A
-0051 F500        E     MOV     UART_Receiver_output_flag,A
+0023 E500        E     MOV     A,UART_Receiver_output_flag
+0025 60FC              JZ      ?C0001
+                                           ; SOURCE LINE # 25
+                                           ; SOURCE LINE # 29
+0027 850000      R     MOV     received_data,UART_Receiver_data_output_buffer
+                                           ; SOURCE LINE # 30
+002A E4                CLR     A
+002B F500        E     MOV     UART_Receiver_output_flag,A
                                            ; SOURCE LINE # 32
-0053 AF00        E     MOV     R7,UART_Receiver_abandoned_byte_count
-0055 7818              MOV     R0,#018H
-0057 120000      E     LCALL   ?C?LSHL
-005A A804              MOV     R0,AR4
-005C A905              MOV     R1,AR5
-005E AA06              MOV     R2,AR6
-0060 AB07              MOV     R3,AR7
-0062 E500        R     MOV     A,temp_output+03H
-0064 FF                MOV     R7,A
-0065 E500        R     MOV     A,temp_output+02H
-0067 FE                MOV     R6,A
-0068 E500        R     MOV     A,temp_output+01H
-006A FD                MOV     R5,A
-006B E4                CLR     A
-006C FC                MOV     R4,A
-006D EB                MOV     A,R3
-006E 2F                ADD     A,R7
-006F F500        R     MOV     temp_output+03H,A
-0071 EA                MOV     A,R2
-0072 3E                ADDC    A,R6
-0073 F500        R     MOV     temp_output+02H,A
-0075 E9                MOV     A,R1
-0076 3D                ADDC    A,R5
-0077 F500        R     MOV     temp_output+01H,A
-0079 EC                MOV     A,R4
-007A 38                ADDC    A,R0
-007B F500        R     MOV     temp_output,A
-                                           ; SOURCE LINE # 33
-007D AF00        R     MOV     R7,temp_output+03H
-007F AE00        R     MOV     R6,temp_output+02H
-0081 AD00        R     MOV     R5,temp_output+01H
-0083 FC                MOV     R4,A
-0084 120000      E     LCALL   _DigitalTube_Display_hex_unsigned_long
-                                           ; SOURCE LINE # 35
-0087 AF00        R     MOV     R7,temp_output+03H
-0089 120000      E     LCALL   _UART_Transmitter_SendByte
+002D AF00        R     MOV     R7,temp_output+03H
+002F AE00        R     MOV     R6,temp_output+02H
+0031 AD00        R     MOV     R5,temp_output+01H
+0033 AC00        R     MOV     R4,temp_output
+0035 7808              MOV     R0,#08H
+0037 120000      E     LCALL   ?C?LSHL
+003A A804              MOV     R0,AR4
+003C A905              MOV     R1,AR5
+003E AA06              MOV     R2,AR6
+0040 AB07              MOV     R3,AR7
+0042 E4                CLR     A
+0043 FC                MOV     R4,A
+0044 FD                MOV     R5,A
+0045 FE                MOV     R6,A
+0046 EB                MOV     A,R3
+0047 2500        R     ADD     A,received_data
+0049 F500        R     MOV     temp_output+03H,A
+004B EE                MOV     A,R6
+004C 3A                ADDC    A,R2
+C51 COMPILER V9.54   MAIN                                                                  10/15/2026 22:32:25 PAGE 3   
+
+004D F500        R     MOV     temp_output+02H,A
+004F ED                MOV     A,R5
+0050 39                ADDC    A,R1
+0051 F500        R     MOV     temp_output+01H,A
+0053 EC                MOV     A,R4
+0054 38                ADDC    A,R0
+0055 F500        R     MOV     temp_output,A
                                            ; SOURCE LINE # 36
+0057 AF00        E     MOV     R7,UART_Receiver_abandoned_byte_count
+0059 E4                CLR     A
+005A 7818              MOV     R0,#018H
+005C 120000      E     LCALL   ?C?LSHL
+005F A804              MOV     R0,AR4
+0061 A905              MOV     R1,AR5
+0063 AA06              MOV     R2,AR6
+0065 AB07              MOV     R3,AR7
+0067 E500        R     MOV     A,temp_output+03H
+0069 FF                MOV     R7,A
+006A E500        R     MOV     A,temp_output+02H
+006C FE                MOV     R6,A
+006D E500        R     MOV     A,temp_output+01H
+006F FD                MOV     R5,A
+0070 E4                CLR     A
+0071 FC                MOV     R4,A
+0072 EB                MOV     A,R3
+0073 2F                ADD     A,R7
+0074 F500        R     MOV     temp_output+03H,A
+0076 EA                MOV     A,R2
+0077 3E                ADDC    A,R6
+0078 F500        R     MOV     temp_output+02H,A
+007A E9                MOV     A,R1
+007B 3D                ADDC    A,R5
+007C F500        R     MOV     temp_output+01H,A
+007E EC                MOV     A,R4
+007F 38                ADDC    A,R0
+0080 F500        R     MOV     temp_output,A
                                            ; SOURCE LINE # 37
-008C 8093              SJMP    ?C0001
+0082 AF00        R     MOV     R7,temp_output+03H
+0084 AE00        R     MOV     R6,temp_output+02H
+0086 AD00        R     MOV     R5,temp_output+01H
+0088 FC                MOV     R4,A
+0089 120000      E     LCALL   _DigitalTube_Display_hex_unsigned_long
+                                           ; SOURCE LINE # 39
+008C AF00        R     MOV     R7,temp_output+03H
+008E 120000      E     LCALL   _UART_Transmitter_SendByte
+                                           ; SOURCE LINE # 40
+                                           ; SOURCE LINE # 41
+0091 8090              SJMP    ?C0001
              ; FUNCTION main (END)
 
-C51 COMPILER V9.54   MAIN                                                                  10/15/2026 21:40:20 PAGE 4   
+C51 COMPILER V9.54   MAIN                                                                  10/15/2026 22:32:25 PAGE 4   
 
 NAME                                    CLASS   MSPACE  TYPE    OFFSET  SIZE
 ====                                    =====   ======  ====    ======  ====
@@ -175,6 +183,7 @@ main . . . . . . . . . . . . . . . . .  PUBLIC   CODE   PROC     0000H  -----
   ring_buffer_head . . . . . . . . . .  AUTO     DATA   U_CHAR   0004H  1
   ring_buffer_tail . . . . . . . . . .  AUTO     DATA   U_CHAR   0005H  1
   temp_output. . . . . . . . . . . . .  AUTO     DATA   U_LONG   0006H  4
+  received_data. . . . . . . . . . . .  AUTO     DATA   U_CHAR   000AH  1
 Timer0_Init. . . . . . . . . . . . . .  EXTERN   CODE   PROC     -----  -----
 _UART_Transmitter_SendByte . . . . . .  EXTERN   CODE   PROC     -----  -----
 UART_Receiver_data_output_buffer . . .  EXTERN   DATA   U_CHAR   -----  1
@@ -184,11 +193,11 @@ UART_Receiver_init . . . . . . . . . .  EXTERN   CODE   PROC     -----  -----
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    142    ----
+   CODE SIZE        =    147    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =   ----      10
+   DATA SIZE        =   ----      11
    IDATA SIZE       =   ----    ----
    BIT SIZE         =   ----    ----
 END OF MODULE INFORMATION.

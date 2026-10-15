@@ -1,4 +1,4 @@
-C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 21:40:20 PAGE 1   
+C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 22:32:26 PAGE 1   
 
 
 C51 COMPILER V9.54, COMPILATION OF MODULE UART_RECEIVER
@@ -62,7 +62,7 @@ line level    source
   48   1          receiver_idle = 1; // 允许INT0中断； // 主要通过这个来设置
   49   1          IT0 = 1; // 使用下降沿中断
   50   1      
-C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 21:40:20 PAGE 2   
+C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 22:32:26 PAGE 2   
 
   51   1          // 定时器相关寄存器
   52   1          // 以下为负责接收的的 Timer2 初始化
@@ -126,7 +126,7 @@ line level    source
  110          void UART_Receiver_Timer2_ISR() INTERRUPT(5)
  111          {
  112   1          static unsigned char is_one;
-C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 21:40:20 PAGE 3   
+C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 22:32:26 PAGE 3   
 
  113   1          static unsigned char end_checking_container = 0x00;
  114   1      
@@ -190,7 +190,7 @@ line level    source
  167   2              // 对应流程图中的Yes：需要显式赋值0x01给curr_bit_mask
  168   2              // 仍旧感谢之前用注释写出状态转移位置的我自己
  169   2              curr_bit_mask = 0x01;
-C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 21:40:20 PAGE 4   
+C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 22:32:26 PAGE 4   
 
  170   2          }
  171   1          // Receiving末位
@@ -233,7 +233,7 @@ line level    source
  204   2          }
  205   1      }
 *** WARNING C280 IN LINE 112 OF UART_Receiver.c: 'is_one': unreferenced local variable
-C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 21:40:20 PAGE 5   
+C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 22:32:26 PAGE 5   
 
 ASSEMBLY LISTING OF GENERATED OBJECT CODE
 
@@ -297,7 +297,7 @@ ASSEMBLY LISTING OF GENERATED OBJECT CODE
                                            ; SOURCE LINE # 93
 0018 32                RETI    
              ; FUNCTION UART_Receiver_FallingEdge_ISR (END)
-C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 21:40:20 PAGE 6   
+C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 22:32:26 PAGE 6   
 
 
              ; FUNCTION UART_Receiver_Back2Idle (BEGIN)
@@ -361,7 +361,7 @@ ASSEMBLY LISTING OF GENERATED OBJECT CODE
 0020 E500        R     MOV     A,end_checking_container
 0022 5407              ANL     A,#07H
 0024 6407              XRL     A,#07H
-C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 21:40:20 PAGE 7   
+C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 22:32:26 PAGE 7   
 
 0026 7055              JNZ     ?C0012
                                            ; SOURCE LINE # 142
@@ -425,7 +425,7 @@ ASSEMBLY LISTING OF GENERATED OBJECT CODE
 0064 E500        R     MOV     A,curr_bit_mask
 0066 4004              JC      ?C0017
                                            ; SOURCE LINE # 176
-C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 21:40:20 PAGE 8   
+C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 22:32:26 PAGE 8   
 
                                            ; SOURCE LINE # 177
 0068 4200        R     ORL     UART_Receiver_private_received_data_buffer,A
@@ -468,7 +468,7 @@ ASSEMBLY LISTING OF GENERATED OBJECT CODE
 008B 32                RETI    
              ; FUNCTION UART_Receiver_Timer2_ISR (END)
 
-C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 21:40:20 PAGE 9   
+C51 COMPILER V9.54   UART_RECEIVER                                                         10/15/2026 22:32:26 PAGE 9   
 
 NAME                                    CLASS   MSPACE  TYPE    OFFSET  SIZE
 ====                                    =====   ======  ====    ======  ====

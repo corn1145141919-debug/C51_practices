@@ -11,6 +11,7 @@ void main()
     unsigned char ring_buffer_head = 0;
     unsigned char ring_buffer_tail = 0;
     unsigned long temp_output = 0x00000000;
+    unsigned char received_data = 0;
 
     UART_Receiver_init();
     UART_Transmitter_init();
@@ -24,8 +25,11 @@ void main()
         {
             // 推掉旧有失败计数，将最旧字节推到即将被覆盖的位置；最低位字节自然为0x00，能确保buffer内容被可信加入并且不污染既有数据
             // 注意：加法优先级比位运算高！以后涉及位运算都需要加括号！
-            temp_output = UART_Receiver_data_output_buffer + (temp_output << 8);
+            // 此处使用实时性更好的8位运算，减少对于寄存器的占用
+            received_data = UART_Receiver_data_output_buffer;
             UART_Receiver_output_flag = 0; // 及时标志output已被利用
+
+            temp_output = received_data + (temp_output << 8);
 
             // 16进制下数码管最高2位（1个字节）显示失败次数
             // 先抹除最高位字节，然后再加入数据

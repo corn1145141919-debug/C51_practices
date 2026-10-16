@@ -135,6 +135,70 @@ unsigned long expression_receiver_process_input(ButtonInput input)
         case waiting_for_operand:
         // 都执行下列语句
         {
+            // 是加减除中的一个
+            if (input == add) 
+            {
+                status.waiting_for_operand_or_showing_answer_status.is_next_operand_negative = 0; // 清除既有的附加的负号状态，还原初始状态
+                status.waiting_for_operand_or_showing_answer_status.curr_operator = ADD;
+            }
+            else if (input == mul)
+            {
+                status.waiting_for_operand_or_showing_answer_status.is_next_operand_negative = 0; // 清除既有的附加的负号状态，还原初始状态
+                status.waiting_for_operand_or_showing_answer_status.curr_operator = MUL;
+            }
+            else if (input == div)
+            {
+                status.waiting_for_operand_or_showing_answer_status.is_next_operand_negative = 0; // 清除既有的附加的负号状态，还原初始状态
+                status.waiting_for_operand_or_showing_answer_status.curr_operator = DIV;
+            }
+            else if (input == sub)
+            {
+                status.waiting_for_operand_or_showing_answer_status.is_next_operand_negative = !status.waiting_for_operand_or_showing_answer_status.is_next_operand_negative;
+            }
+            else if (input == eq)
+            {
+                // 此时curr_operator没有转化为token，可以直接结算
+                // 下述为逻辑更加明确的代码
+                // if (state == showing_answer)
+                // {
+                //     // 无需执行
+                //     // state = showing_answer;
+                //     // ans = ans;
+                //     expression_receiver_W4O_Or_SA_init(add); // 统一框架就是好；不过这里确实重写了很多遍
+                // }
+                // else // if (state == waiting_for_operand)
+                // {
+                //     state = showing_answer;
+                //     ans = expression_solver_solve(); // 能在waiting_for_operand状态，solver一定之前收到过一些token
+                //     expression_receiver_W4O_Or_SA_init(add);
+                // }
+
+                // 性能更高的写法？
+                if (state == waiting_for_operand)
+                {
+                    state = showing_answer;
+                    ans = expression_solver_solve();
+                }
+
+                expression_receiver_W4O_Or_SA_init(add);
+            }
+            else // 默认是小数点或者数字。这样就能少写点条件判断了，或者说能大量复用代码了
+            {
+                expression_solver_push_operator(status.waiting_for_operand_or_showing_answer_status.curr_operator);
+
+                if (input == dec_pt)
+                {
+                    state = entering_number__decimal_part;
+                }
+                else
+                {
+                    state = entering_number__integer_part;
+                }
+
+                // 应该不会出现同一union“变量”数据覆盖导致的问题吧？
+                expression_receiver_EN_init(status.waiting_for_operand_or_showing_answer_status.is_next_operand_negative);
+            }
+
             break;
         }
         case entering_number__decimal_part:
@@ -145,19 +209,6 @@ unsigned long expression_receiver_process_input(ButtonInput input)
             {
                 // 无论当前是在键入整数还是键入小数，都跳转为键入小数
                 state = entering_number__decimal_part;
-            }
-            else if (0 <= input && input <= 9)
-            {
-                if (state == entering_number__decimal_part && status.entering_number_status.temp_decimal_part < SIG_FIGS) // 如果超过小数有效数字，就直接忽略输入
-                {
-                    status.entering_number_status.temp_decimal_part[status.entering_number_status.curr_decimal_part_bit] = input;
-                    status.entering_number_status.curr_decimal_part_bit++;
-                }
-                else if (state == entering_number__integer_part)
-                {
-                    status.entering_number_status.temp_integer_part = input + 10 * status.entering_number_status.temp_integer_part;
-                    status.entering_number_status.curr_decimal_part_bit++;
-                }
             }
             else if (add <= input && input <= mul) // 是加减乘除中的一个
             {
@@ -178,7 +229,19 @@ unsigned long expression_receiver_process_input(ButtonInput input)
                 ans = expression_solver_solve();
                 expression_receiver_W4O_Or_SA_init(add); // 默认
             }
-            
+            else // if (0 <= input && input <= 9) // 默认总是满足条件
+            {
+                if (state == entering_number__decimal_part && status.entering_number_status.temp_decimal_part < SIG_FIGS) // 如果超过小数有效数字，就直接忽略输入
+                {
+                    status.entering_number_status.temp_decimal_part[status.entering_number_status.curr_decimal_part_bit] = input;
+                    status.entering_number_status.curr_decimal_part_bit++;
+                }
+                else if (state == entering_number__integer_part)
+                {
+                    status.entering_number_status.temp_integer_part = input + 10 * status.entering_number_status.temp_integer_part;
+                    status.entering_number_status.curr_decimal_part_bit++;
+                }
+            }
             break;
         }
         default:

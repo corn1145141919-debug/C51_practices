@@ -14,14 +14,15 @@ typedef struct
     float value;
 } Operand;
 
-typedef struct
-{
-    unsigned char is_operand;
-    union 
-    {
-        Operand operand;
-        Operator operator;
-    } token_data; 
-} Token;
+// 看看需不需要
+// typedef struct
+// {
+//     unsigned char is_operand;
+//     union 
+//     {
+//         Operand operand;
+//         Operator operator;
+//     } token_data; 
+// } Token;
 
 #endif

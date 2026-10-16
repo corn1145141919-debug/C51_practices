@@ -24,3 +24,5 @@
 - 解决了首位数字触发状态转移到entering_number__integer_part时数字被忽略的问题
 - 公开化`expression_solver_init()`并让其显式出现在`expression_solver_solve`处负责扫尾
 - 连续修复了若干GPT指出的小错误
+- “基座架构”不改变，仍然是阻塞式检查按键 + ISR刷新数码管（这是一个月左右以前我自己跑通的足够好的基座）。我们只是加入了今天写的软件层。
+- 构建了映射；

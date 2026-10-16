@@ -168,28 +168,6 @@ void DigitalTube_Display_hex_unsigned_long(unsigned long input)
     }
 }
 
-// TODO
-
-void DigitalTube_Display_float(float input)
-{
-    // available_tube_bit = highest - lowest + 1
-    unsigned char highest_tube_bit = 7;
-    unsigned char lowest_tube_bit = 0;
-
-    if (is_FloatInvalid(input))
-    {
-        DigitalTube_Display_Error();
-        return;
-    }
-
-    if (input < 0 || input == -0.0)
-    {
-        highest_tube_bit = 6;
-        buffer[7] = 0x40; // "-"
-        input = -input;
-    }
-}
-
 void DigitalTube_Display_Error(void)
 {
     buffer[7] = table[blank];
@@ -211,4 +189,25 @@ void DigitalTube_Display_Overflow(void)
     buffer[2] = 0x38; // L
     buffer[1] = table[0];
     buffer[0] = table[3];
+}
+
+// TODO
+void DigitalTube_Display_float(float input)
+{
+    // available_tube_bit = highest - lowest + 1
+    unsigned char highest_tube_bit = 7;
+    unsigned char lowest_tube_bit = 0;
+
+    if (is_FloatInvalid(input))
+    {
+        DigitalTube_Display_Error();
+        return;
+    }
+
+    if (input < 0 || input == -0.0)
+    {
+        highest_tube_bit = 6;
+        buffer[7] = 0x40; // "-"
+        input = -input;
+    }
 }

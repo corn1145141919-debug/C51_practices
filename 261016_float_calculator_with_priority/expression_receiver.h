@@ -21,6 +21,6 @@ void expression_receiver_init();
  * 输入：super_loop接收到的按键
  * 输出：数码管显示的数据
  */
-unsigned long expression_receiver_process_input(ButtonInput input);
+signed long expression_receiver_process_input(ButtonInput input);
 
 #endif

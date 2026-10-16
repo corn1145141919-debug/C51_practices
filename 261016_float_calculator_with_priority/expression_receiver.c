@@ -134,9 +134,9 @@ void expression_receiver_init()
 }
 
 // TODO：构建给数码管显示的状态机，或者考虑解耦
-unsigned long expression_receiver_process_input(ButtonInput input)
+signed long expression_receiver_process_input(ButtonInput input)
 {
-    unsigned long output = 0; // TODO 关于该变量的逻辑代码
+    signed long output = 0; // TODO 关于该变量的逻辑代码
     switch (state)
     {
         case showing_answer:

@@ -4,7 +4,7 @@
 #include <string.h> // 给数组进行memset
 
 #define SIG_FIGS 8 // 录入的小数的有效数字只保留8位
-#define MAX 0xffffffff
+#define MAX_ULONG_VALUE 0xFFFFFFFFUL
 
 #include <INTRINS.H> // 检测浮点数是否为error
 
@@ -137,8 +137,6 @@ void expression_receiver_init()
 unsigned long expression_receiver_process_input(ButtonInput input)
 {
     unsigned long output = 0; // TODO 关于该变量的逻辑代码
-
-    unsigned long temp; // 会在entering_nubmer__integer_part部分用到
     switch (state)
     {
         case showing_answer:
@@ -265,7 +263,7 @@ unsigned long expression_receiver_process_input(ButtonInput input)
                 else if (state == entering_number__integer_part)
                 {
                     // 可严格证明这一判断是准确的
-                    if (status.entering_number_status.temp_integer_part > (MAX - input) / 10UL)
+                    if (status.entering_number_status.temp_integer_part > (MAX_ULONG_VALUE - input) / 10UL)
                     {
                         // error
                         status.entering_number_status.is_temp_integer_part_overflow = 1;

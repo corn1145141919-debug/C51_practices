@@ -22,7 +22,7 @@ typedef struct
     // 必须存储足够多的数据
     // 这种形式似乎更好实现
     unsigned long temp_integer_part; 
-    unsigned char temp_decimal_part[SIG_FIGS]; // 总有效数字强制规定为8位
+    unsigned char temp_decimal_part[SIG_FIGS]; // 录入的小数强制规定为8位
     unsigned char curr_decimal_part_bit;
 } EnteringNubmerStatus;
 

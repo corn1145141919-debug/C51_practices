@@ -3,7 +3,7 @@
 #include "token.h"
 #include <string.h> // 给数组进行memset
 
-#define SIG_FIGS 8 // 录入的小数的有效数字只保留8位
+#define SIG_FIGS 7 // 录入的小数的有效数字只保留7位
 #define MAX_ULONG_VALUE 0xFFFFFFFFUL
 
 #include <INTRINS.H> // 检测浮点数是否为error

@@ -41,10 +41,10 @@ static Operand ans; // 似乎只适用于showing_answer一个状态？
 
 // 各种构造函数
 // 注意：所有跳转到EN状态的都需要实现该初始化函数
-void expression_receiver_EN_init(unsigned char is_this_number_negative)
+void expression_receiver_EN_init(unsigned char is_this_number_negative, unsigned char initial_integer_part)
 {
     status.entering_number_status.is_entered_number_negative = is_this_number_negative;
-    status.entering_number_status.temp_integer_part = 0;
+    status.entering_number_status.temp_integer_part = initial_integer_part;
     memset(status.entering_number_status.temp_decimal_part, 0, sizeof(status.entering_number_status.temp_decimal_part)); // 数组清零
     status.entering_number_status.curr_decimal_part_bit = 0;
 }
@@ -157,13 +157,14 @@ unsigned long expression_receiver_process_input(ButtonInput input)
                 if (input == dec_pt)
                 {
                     state = entering_number__decimal_part;
+                    // “点几”是“零点几”的语法糖
+                    expression_receiver_EN_init(status.waiting_for_operand_or_showing_answer_status.is_next_operand_negative, 0);
                 }
                 else
                 {
                     state = entering_number__integer_part;
+                    expression_receiver_EN_init(status.waiting_for_operand_or_showing_answer_status.is_next_operand_negative, input);
                 }
-                // 应该不会出现同一union“变量”数据覆盖导致的问题吧？
-                expression_receiver_EN_init(status.waiting_for_operand_or_showing_answer_status.is_next_operand_negative);
             }
 
             break;
@@ -204,14 +205,14 @@ unsigned long expression_receiver_process_input(ButtonInput input)
                 if (input == dec_pt)
                 {
                     state = entering_number__decimal_part;
+                    // “点几”是“零点几”的语法糖
+                    expression_receiver_EN_init(status.waiting_for_operand_or_showing_answer_status.is_next_operand_negative, 0);
                 }
                 else
                 {
                     state = entering_number__integer_part;
+                    expression_receiver_EN_init(status.waiting_for_operand_or_showing_answer_status.is_next_operand_negative, input);
                 }
-
-                // 应该不会出现同一union“变量”数据覆盖导致的问题吧？
-                expression_receiver_EN_init(status.waiting_for_operand_or_showing_answer_status.is_next_operand_negative);
             }
 
             break;

@@ -19,3 +19,6 @@
 - 边界情况：showing_answer条件下，即使先按下operator然后按下等于号，那么按等于号时也是从waiting_for_operand跳转出去的，并且历史上只提交了一个token（就是之前的ans），行为仍然正确，这一轮ans被赋值为上一轮answer。
 - 注意，showing_answer状态下的行为相当程度上证明了“第一个被推出去的token是operand”。一方面，该状态下按运算符会触发整个表达式的第一个token的发送，它是一个operand token；另一方面，该状态下直接按数字会转移到entering_number，后续会推出第一个token，它也是operand token。
 - 既然waiting_for_operand和showing_answer已经累积了这么多不同，为了代码的可维护性，我们必须将它们分开了。
+
+### 10月17日
+- 解决了首位数字触发状态转移到entering_number__integer_part时数字被忽略的问题

@@ -107,9 +107,7 @@ Operator operator_stack_pop()
 
 void expression_solver_init()
 {
-    // 预期第一个推进来的token是operand，因此强行规定上一个token是operator（暂定，错了再改）
-    // 这里牵涉到receiver层showing_answer和waiting_for_operand状态转移后是否要推两个类型的token，
-    // 怎么推token的问题（我隐约觉得之前写错了）——需要再改一下
+    // 每个表达式第一个推进来的token必然是operand，因此强行规定上一个token是operator
     is_last_token_operand = 0;
 
     memset(operand_stack, 0, sizeof(operand_stack));

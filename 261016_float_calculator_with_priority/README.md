@@ -17,5 +17,5 @@
 - `commit 646c56e`状态下，showing_answer状态下先按下运算符再按下等于号的行为似乎有点错误。（太复杂了我不想细细解释了）
 - 经过探讨，解决方案如下：规定在showing_answer状态下按下运算符按键之后，ans就降格为普通的左操作数，被推给solver，同时状态转为一般的waiting_for_operand；showing_answer状态下不按下运算符而直接按下按键，则相当于是在键入新的操作数覆盖旧的操作数，状态转移为entering_number且不推送任何token。
 - 边界情况：showing_answer条件下，即使先按下operator然后按下等于号，那么按等于号时也是从waiting_for_operand跳转出去的，并且历史上只提交了一个token（就是之前的ans），行为仍然正确，这一轮ans被赋值为上一轮answer。
-- 注意，showing_answer状态下的行为相当程度上反映了“第一个被推出去的token是operator还是operand”。一方面，该状态下按运算符会触发整个表达式的第一个token的发送，它是一个operand token；另一方面，该状态下直接按数字会转移到entering_number，后续会推出第一个token，它也是operand token。
+- 注意，showing_answer状态下的行为相当程度上证明了“第一个被推出去的token是operand”。一方面，该状态下按运算符会触发整个表达式的第一个token的发送，它是一个operand token；另一方面，该状态下直接按数字会转移到entering_number，后续会推出第一个token，它也是operand token。
 - 既然waiting_for_operand和showing_answer已经累积了这么多不同，为了代码的可维护性，我们必须将它们分开了。

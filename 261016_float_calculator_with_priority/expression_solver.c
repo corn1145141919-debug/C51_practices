@@ -4,8 +4,8 @@
 #include <INTRINS.H> // 检测浮点数是否为error
 
 // 理论分析求得
-#define OPERAND_STACK_SIZE 2
-#define OPERATOR_STACK_SIZE 3
+#define OPERAND_STACK_SIZE 3
+#define OPERATOR_STACK_SIZE 2
 
 // 防御operator和operand没有交替到来的情况，我们暂时静默忽略多余的operator token 或者 operand token
 static unsigned char is_last_token_operand;

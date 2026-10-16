@@ -41,6 +41,9 @@ static union
 } status;
 static Operand ans; // 似乎只适用于showing_answer一个状态？
 
+// 规定-1情况下不显示小数点
+signed char decimal_point_place;
+
 // 各种构造函数
 // 注意：所有跳转到EN状态的都需要实现该初始化函数
 void expression_receiver_EN_init(unsigned char is_this_number_negative, unsigned char initial_integer_part)
@@ -133,8 +136,8 @@ void expression_receiver_init()
     expression_solver_init();
 }
 
-// TODO：构建给数码管显示的状态机，或者考虑解耦
-signed long expression_receiver_process_input(ButtonInput input)
+// 该函数完成状态机的主要职责。
+Data4DigitalTube expression_receiver_process_input(ButtonInput input)
 {
     signed long output = 0; // TODO 关于该变量的逻辑代码
     switch (state)
@@ -282,5 +285,5 @@ signed long expression_receiver_process_input(ButtonInput input)
         }
     }
 
-    return output;
+    return output; // TODO
 }

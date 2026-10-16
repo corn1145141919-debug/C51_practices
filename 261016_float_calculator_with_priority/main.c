@@ -27,6 +27,7 @@ const ButtonInput map_from_button_to_receiver[16] = {
 void main()
 {
     ButtonInput key_got;
+    Data4DigitalTube data_4_digital_tube;
     Timer0_Init();
 
     MatrixButton_getKey();
@@ -34,6 +35,15 @@ void main()
     while(1)
     {
         key_got = map_from_button_to_receiver[MatrixButton_getKey()];
-        DigitalTube_Display_float(expression_receiver_process_input(key_got));
+        data_4_digital_tube = expression_receiver_process_input(key_got);
+        if (data_4_digital_tube.is_error)
+        {
+            DigitalTube_Display_Error();
+        }
+        else
+        {
+            DigitalTube_Display_signed_32_bit_decimal_int(data_4_digital_tube.nubmers);
+            DigitalTube_add_decimal_point(data_4_digital_tube.digital_point_place);
+        }
     }
 }

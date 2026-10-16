@@ -13,6 +13,14 @@ typedef enum
     eq = 15
 } ButtonInput;
 
+typedef struct
+{
+    unsigned char is_error;
+    signed long nubmers;
+    unsigned char digital_point_place;
+} Data4DigitalTube;
+
+
 void expression_receiver_init();
 
 /* 对于super_loop的接口：对一次按键行为相应一步操作。
@@ -21,6 +29,6 @@ void expression_receiver_init();
  * 输入：super_loop接收到的按键
  * 输出：数码管显示的数据
  */
-signed long expression_receiver_process_input(ButtonInput input);
+Data4DigitalTube expression_receiver_process_input(ButtonInput input);
 
 #endif

@@ -76,7 +76,7 @@ void bit_selection(unsigned char number)
 
 // 由于默认每个数码管位的buffer都是在display“重载”函数中整个修改的，所以不用添加响应的erase_decimal_point().
 // 按位或的特性决定了重复添加后仍会有小数点
-void add_decimal_point(unsigned char bit_target)
+void DigitalTube_add_decimal_point(unsigned char bit_target)
 {
     buffer[bit_target] |= 0x80;
 }
@@ -113,7 +113,7 @@ void DigitalTube_Display_Error(void); // 先进行声明
 // 暂时不检测显示溢出，会显示后八位（负数为7位）——反正以后会重构为 convert 任务外包，本类专心处理显示
 // temp TODO: 改为只处理传入的八位数字（负数为7位，用ASCII中的'-'当负号）的数组，打包成的任务外包为单独一类 converter
 // 实际应该使用32位有符号整数；这对于数码管显示足够了，因此传过来的input我们暂时认为不是溢出结果。于是我们不做特殊的溢出处理。
-void DigitalTube_Display_decimal_int(signed long input)
+void DigitalTube_Display_signed_32_bit_decimal_int(signed long input)
 {
     unsigned char i;
     unsigned char bits_used = 8;

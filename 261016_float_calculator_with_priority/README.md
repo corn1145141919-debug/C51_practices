@@ -25,4 +25,8 @@
 - 公开化`expression_solver_init()`并让其显式出现在`expression_solver_solve`处负责扫尾
 - 连续修复了若干GPT指出的小错误
 - “基座架构”不改变，仍然是阻塞式检查按键 + ISR刷新数码管（这是一个月左右以前我自己跑通的足够好的基座）。我们只是加入了今天写的软件层。
-- 构建了映射；
+- 构建了映射
+- 决策：弃用display_float，使用display 32位整数的函数外加添加小数点的函数
+- 决策：将核心状态机逻辑、对外暴露的接口`expression_receiver_process_input()`以及专门的显示信息处理函数耦合。
+- 决策：状态机函数传回的显示参数是一个结构体
+- 决策；弃用OVERFLOW，只显示Error

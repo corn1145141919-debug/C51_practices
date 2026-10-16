@@ -123,6 +123,10 @@ void expression_receiver_init()
     ans.value = +0.0;
 
     expression_receiver_W4O_Or_SA_init(add); // 进入showing_answer状态的默认配置
+
+    // 由于外界只与expression_receiver交流，理论上不该知道solver的存在，
+    // 我们需要在这里完成连带的初始化
+    expression_solver_init();
 }
 
 // TODO：构建给数码管显示的状态机，或者考虑解耦

@@ -374,11 +374,6 @@
               <FilePath>.\digital_tube.c</FilePath>
             </File>
             <File>
-              <FileName>input_handler.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\input_handler.c</FilePath>
-            </File>
-            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\main.c</FilePath>
@@ -404,11 +399,6 @@
               <FilePath>.\digital_tube.h</FilePath>
             </File>
             <File>
-              <FileName>input_handler.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\input_handler.h</FilePath>
-            </File>
-            <File>
               <FileName>matrixButton.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\matrixButton.h</FilePath>
@@ -417,6 +407,36 @@
               <FileName>timer0.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\timer0.h</FilePath>
+            </File>
+            <File>
+              <FileName>expression_receiver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\expression_receiver.c</FilePath>
+            </File>
+            <File>
+              <FileName>expression_solver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\expression_solver.c</FilePath>
+            </File>
+            <File>
+              <FileName>token.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\token.c</FilePath>
+            </File>
+            <File>
+              <FileName>expression_receiver.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\expression_receiver.h</FilePath>
+            </File>
+            <File>
+              <FileName>expression_solver.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\expression_solver.h</FilePath>
+            </File>
+            <File>
+              <FileName>token.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\token.h</FilePath>
             </File>
           </Files>
         </Group>

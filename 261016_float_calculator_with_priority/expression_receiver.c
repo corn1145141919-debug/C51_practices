@@ -4,6 +4,7 @@
 #include <string.h> // 给数组进行memset
 
 #define SIG_FIGS 8 // 录入的小数的有效数字只保留8位
+#define MAX 0xffffffff
 
 #include <INTRINS.H> // 检测浮点数是否为error
 
@@ -24,6 +25,7 @@ typedef struct
     unsigned long temp_integer_part; 
     unsigned char temp_decimal_part[SIG_FIGS]; // 录入的小数强制规定为8位
     unsigned char curr_decimal_part_bit;
+    unsigned char is_temp_integer_part_overflow;
 } EnteringNubmerStatus;
 
 typedef struct
@@ -47,6 +49,7 @@ void expression_receiver_EN_init(unsigned char is_this_number_negative, unsigned
     status.entering_number_status.temp_integer_part = initial_integer_part;
     memset(status.entering_number_status.temp_decimal_part, 0, sizeof(status.entering_number_status.temp_decimal_part)); // 数组清零
     status.entering_number_status.curr_decimal_part_bit = 0;
+    status.entering_number_status.is_temp_integer_part_overflow = 0;
 }
 
 Operand expression_receiver_EN_get_operand()
@@ -61,7 +64,8 @@ Operand expression_receiver_EN_get_operand()
         output.value += weight * status.entering_number_status.temp_decimal_part[i];
     }
     // 尽管不太可能在这里产生，但是仍旧在这里写防御代码。
-    if (2 <= _chkfloat_(output.value)) // 利用Keil的库——如果是+Infinity、-Infinity 或者 NaN
+    // 实际上，error可能因整数溢出而产生
+    if (2 <= _chkfloat_(output.value) || status.entering_number_status.is_temp_integer_part_overflow) // 利用Keil的库——如果是+Infinity、-Infinity 或者 NaN
     {
         output.is_error = 1;
         return output;
@@ -133,6 +137,8 @@ void expression_receiver_init()
 unsigned long expression_receiver_process_input(ButtonInput input)
 {
     unsigned long output = 0; // TODO 关于该变量的逻辑代码
+
+    unsigned long temp; // 会在entering_nubmer__integer_part部分用到
     switch (state)
     {
         case showing_answer:
@@ -258,7 +264,16 @@ unsigned long expression_receiver_process_input(ButtonInput input)
                 }
                 else if (state == entering_number__integer_part)
                 {
-                    status.entering_number_status.temp_integer_part = input + 10 * status.entering_number_status.temp_integer_part;
+                    // 可严格证明这一判断是准确的
+                    if (status.entering_number_status.temp_integer_part > (MAX - input) / 10UL)
+                    {
+                        // error
+                        status.entering_number_status.is_temp_integer_part_overflow = 1;
+                    }
+                    else
+                    {
+                        status.entering_number_status.temp_integer_part = input + 10 * status.entering_number_status.temp_integer_part;
+                    }
                 }
             }
             break;

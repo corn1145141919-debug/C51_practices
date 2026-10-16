@@ -67,7 +67,7 @@ unsigned char is_FloatInvalid(float input)
 }
 
 // buffer 应该直接储存显示段选信息！这样才支持自定义的灵活修改（比如显示o和r，或者添加小数点）
-static unsigned char buffer[8] = {blank, blank, blank, blank, blank, blank, blank, blank, };
+static unsigned char buffer[8] = {0}; // 直接储存段选信息：改对了（UART项目的那边暂时不改以免出错）
 
 void bit_selection(unsigned char number)
 {
@@ -112,7 +112,8 @@ void DigitalTube_Display_Error(void); // 先进行声明
 
 // 暂时不检测显示溢出，会显示后八位（负数为7位）——反正以后会重构为 convert 任务外包，本类专心处理显示
 // temp TODO: 改为只处理传入的八位数字（负数为7位，用ASCII中的'-'当负号）的数组，打包成的任务外包为单独一类 converter
-void DigitalTube_Display_decimal_int(int input)
+// 实际应该使用32位有符号整数；这对于数码管显示足够了，因此传过来的input我们暂时认为不是溢出结果。于是我们不做特殊的溢出处理。
+void DigitalTube_Display_decimal_int(signed long input)
 {
     unsigned char i;
     unsigned char bits_used = 8;
@@ -145,6 +146,7 @@ void DigitalTube_Display_decimal_int(int input)
     }
 }
 
+// TODO
 void DigitalTube_Display_float(float input)
 {
     // available_tube_bit = highest - lowest + 1
@@ -157,7 +159,7 @@ void DigitalTube_Display_float(float input)
         return;
     }
 
-    if (input < 0 || input == -0.0)
+    if (input < 0.0f) // 不对负0进行特殊显示
     {
         highest_tube_bit = 6;
         buffer[7] = 0x40; // "-"

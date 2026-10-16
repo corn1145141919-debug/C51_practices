@@ -132,10 +132,45 @@ unsigned long expression_receiver_process_input(ButtonInput input)
     switch (state)
     {
         case showing_answer:
-        case waiting_for_operand:
-        // 都执行下列语句
         {
-            // 是加减除中的一个
+            // 必然只是第一次按下，并且是状态转移，因此可以推出ans token之后直接调用之前写好的构造函数重设
+            if (add <= input && input <= div) // 是加减乘除中的一个；
+            {
+                expression_solver_push_operand(ans);
+                state = waiting_for_operand;
+                expression_receiver_W4O_Or_SA_init(input);
+            }
+            else if (input == eq)
+            {
+                // 此时curr_operator没有转化为token，可以直接结算
+
+                // 无需执行
+                // state = showing_answer;
+                // ans = ans;
+
+                expression_receiver_W4O_Or_SA_init(add); // 统一框架就是好；不过这里确实重写了很多遍
+            }
+            else // 默认是小数点或者数字。这样就能少写点条件判断了，或者说能大量复用代码了
+            // 这种条件下ans会被彻底覆盖
+            {
+                // 只进行状态转移，不推送任何token
+                if (input == dec_pt)
+                {
+                    state = entering_number__decimal_part;
+                }
+                else
+                {
+                    state = entering_number__integer_part;
+                }
+                // 应该不会出现同一union“变量”数据覆盖导致的问题吧？
+                expression_receiver_EN_init(status.waiting_for_operand_or_showing_answer_status.is_next_operand_negative);
+            }
+
+            break;
+        }
+        case waiting_for_operand:
+        {
+            // 是加减乘除中的一个
             if (input == add) 
             {
                 status.waiting_for_operand_or_showing_answer_status.is_next_operand_negative = 0; // 清除既有的附加的负号状态，还原初始状态
@@ -158,28 +193,8 @@ unsigned long expression_receiver_process_input(ButtonInput input)
             else if (input == eq)
             {
                 // 此时curr_operator没有转化为token，可以直接结算
-                // 下述为逻辑更加明确的代码
-                // if (state == showing_answer)
-                // {
-                //     // 无需执行
-                //     // state = showing_answer;
-                //     // ans = ans;
-                //     expression_receiver_W4O_Or_SA_init(add); // 统一框架就是好；不过这里确实重写了很多遍
-                // }
-                // else // if (state == waiting_for_operand)
-                // {
-                //     state = showing_answer;
-                //     ans = expression_solver_solve(); // 能在waiting_for_operand状态，solver一定之前收到过一些token
-                //     expression_receiver_W4O_Or_SA_init(add);
-                // }
-
-                // 性能更高的写法？
-                if (state == waiting_for_operand)
-                {
-                    state = showing_answer;
-                    ans = expression_solver_solve();
-                }
-
+                state = showing_answer;
+                ans = expression_solver_solve(); // 能在waiting_for_operand状态，solver一定之前收到过一些token
                 expression_receiver_W4O_Or_SA_init(add);
             }
             else // 默认是小数点或者数字。这样就能少写点条件判断了，或者说能大量复用代码了
@@ -210,7 +225,7 @@ unsigned long expression_receiver_process_input(ButtonInput input)
                 // 无论当前是在键入整数还是键入小数，都跳转为键入小数
                 state = entering_number__decimal_part;
             }
-            else if (add <= input && input <= mul) // 是加减乘除中的一个
+            else if (add <= input && input <= div) // 是加减乘除中的一个
             {
                 // 拿到一个 operand token，先执行操作
                 expression_solver_push_operand(expression_receiver_EN_get_operand());
@@ -239,7 +254,6 @@ unsigned long expression_receiver_process_input(ButtonInput input)
                 else if (state == entering_number__integer_part)
                 {
                     status.entering_number_status.temp_integer_part = input + 10 * status.entering_number_status.temp_integer_part;
-                    status.entering_number_status.curr_decimal_part_bit++;
                 }
             }
             break;

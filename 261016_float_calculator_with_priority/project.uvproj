@@ -419,11 +419,6 @@
               <FilePath>.\expression_solver.c</FilePath>
             </File>
             <File>
-              <FileName>token.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\token.c</FilePath>
-            </File>
-            <File>
               <FileName>expression_receiver.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\expression_receiver.h</FilePath>

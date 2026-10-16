@@ -6,6 +6,14 @@
 #define BIT_SELECTION_REG P2
 #define SEG_SELECTION_REG P0
 
+// 能让 VS Code 的 IntelliSense 和 Keil 同时正确读取（需要安装Keil Assistant插件）
+// 理论上来讲，在把这个软件发布给任何只有Keil软件的用户时，这些源代码都能被正确编译
+#ifndef __VSCODE_C51__
+#define INTERRUPT(x) interrupt x 
+#else
+#define INTERRUPT(x)
+#endif
+
 const char table[] = {
     0x3f,
     0x06,
@@ -74,13 +82,15 @@ void add_decimal_point(unsigned char bit_target)
 }
 
 // 核心机制。不能暴露对外接口
-void DigitalTube_Refresh_ISR(void) // interrupt 1 // 写完记得恢复
+void DigitalTube_Refresh_ISR(void) INTERRUPT(1) 
 {
+    // 旧的C标准只支持在任何可执行语句开头声明变量
+    // 但是注意：初始化必须写在下面，必须与普通赋值语句区分开！
+    static unsigned char curr_bit = 0; // 只执行一次
+
     // 在ISR开头手动重装
     TH0 = 255;
     TL0 = 0;
-
-    static signed char curr_bit = 0;
 
     SEG_SELECTION_REG = 0x00;
     bit_selection(curr_bit);
@@ -97,6 +107,9 @@ void DigitalTube_Refresh_ISR(void) // interrupt 1 // 写完记得恢复
 }
 
 // public:
+
+void DigitalTube_Display_Error(void); // 先进行声明
+
 // 暂时不检测显示溢出，会显示后八位（负数为7位）——反正以后会重构为 convert 任务外包，本类专心处理显示
 // temp TODO: 改为只处理传入的八位数字（负数为7位，用ASCII中的'-'当负号）的数组，打包成的任务外包为单独一类 converter
 void DigitalTube_Display_decimal_int(int input)
@@ -130,7 +143,7 @@ void DigitalTube_Display_decimal_int(int input)
     {
         buffer[i] = table[blank];
     }
-} // TODO
+}
 
 void DigitalTube_Display_float(float input)
 {
@@ -149,9 +162,7 @@ void DigitalTube_Display_float(float input)
         highest_tube_bit = 6;
         buffer[7] = 0x40; // "-"
         input = -input;
-    }
-
-    
+    }  
 }
 
 void DigitalTube_Display_Error(void)

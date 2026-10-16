@@ -29,8 +29,7 @@ void main()
     ButtonInput key_got;
     Data4DigitalTube data_4_digital_tube;
     Timer0_Init();
-
-    MatrixButton_getKey();
+    expression_receiver_init();
 
     while(1)
     {
@@ -43,7 +42,10 @@ void main()
         else
         {
             DigitalTube_Display_signed_32_bit_decimal_int(data_4_digital_tube.nubmers);
-            DigitalTube_add_decimal_point(data_4_digital_tube.digital_point_place);
+            if (data_4_digital_tube.digital_point_place >= 0)
+            {
+                DigitalTube_add_decimal_point(data_4_digital_tube.digital_point_place);
+            }
         }
     }
 }

@@ -137,7 +137,8 @@ void expression_solver_push_operator(Operator input)
     {
         while (1)
         {
-            if (priority(input) > priority(operator_stack[operand_stack_top]))
+            // 必须加上运算符栈还空的情况；||在C语言中具有短路求值规则，因此当栈空时||后面的代码不会被执行
+            if (operator_stack_top == -1 || priority(input) > priority(operator_stack[operator_stack_top]))
             {
                 operator_stack_push_back(input);
                 break;
@@ -157,13 +158,21 @@ void expression_solver_push_operator(Operator input)
 Operand expression_solver_solve() 
 {
     Operand output;
-    while (1)
+    // while (1)
+    // {
+    //     if (operator_stack_top == -1) // 运算符栈已空
+    //     {
+    //         break;
+    //     }
+    //     calculate();
+    // }
+
+    // 更好的写法
+    // 无论何时，只要栈空就能离开；
+    // 并且运算符栈空的情况下就归约（即只来一个operand token）情况下，calculate()不会被执行，直接输出最终答案
+    while (operator_stack_top >= 0)
     {
         calculate();
-        if (operator_stack_top == -1) // 运算符栈已空
-        {
-            break;
-        }
     }
 
     output = operand_stack[operand_stack_top];

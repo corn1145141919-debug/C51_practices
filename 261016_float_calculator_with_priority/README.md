@@ -22,3 +22,4 @@
 
 ### 10月17日
 - 解决了首位数字触发状态转移到entering_number__integer_part时数字被忽略的问题
+- 公开化`expression_solver_init()`并让其显式出现在`expression_solver_solve`处负责扫尾

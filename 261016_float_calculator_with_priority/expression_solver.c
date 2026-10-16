@@ -17,6 +17,7 @@ static signed char operator_stack_top;
 
 // 不做太多多余的防御了，我们不妨相信receiver总会给出正确的行为
 
+// private:
 unsigned char priority(Operator operator)
 {
     switch (operator)
@@ -105,6 +106,8 @@ Operator operator_stack_pop()
     return operator_stack[operator_stack_top--];
 }
 
+// public:
+
 void expression_solver_init()
 {
     // 每个表达式第一个推进来的token必然是operand，因此强行规定上一个token是operator
@@ -149,6 +152,7 @@ void expression_solver_push_operator(Operator input)
 // 不过它的重要性在于它是输出结果的唯一通道。
 Operand expression_solver_solve() 
 {
+    Operand output;
     while (1)
     {
         calculate();
@@ -158,5 +162,7 @@ Operand expression_solver_solve()
         }
     }
 
-    return operand_stack[operand_stack_top];
+    output = operand_stack[operand_stack_top];
+    expression_solver_init(); // 让solve()函数自己负责扫尾和清除跨表达式污染
+    return output;
 }

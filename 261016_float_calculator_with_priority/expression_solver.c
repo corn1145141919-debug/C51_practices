@@ -35,6 +35,30 @@ unsigned char priority(Operator operator)
     }
 }
 
+void operand_stack_push_back(Operand input)
+{
+    operand_stack_top++; // 先指向栈顶位置
+    operand_stack[operand_stack_top] = input;
+}
+
+Operand operand_stack_pop()
+{
+    // 先引用后自减。这种情况下能保证被运行。
+    // lazy delete，该栈位再次被使用的时候值自然会被覆盖；栈顶指针不指向这里就不会有问题
+    return operand_stack[operand_stack_top--];
+}
+
+void operator_stack_push_back(Operator input)
+{
+    operator_stack_top++;
+    operator_stack[operator_stack_top] = input;
+}
+
+Operator operator_stack_pop()
+{
+    return operator_stack[operator_stack_top--];
+}
+
 // 计算核心
 // 弹出operator栈顶作为规则；让operand栈顶先后弹出本次运算的右操作数和左操作数，运算结束之后压回栈顶
 // 内含error处理
@@ -80,30 +104,6 @@ void calculate()
     }
 
     operand_stack_push_back(result);
-}
-
-void operand_stack_push_back(Operand input)
-{
-    operand_stack_top++; // 先指向栈顶位置
-    operand_stack[operand_stack_top] = input;
-}
-
-Operand operand_stack_pop()
-{
-    // 先引用后自减。这种情况下能保证被运行。
-    // lazy delete，该栈位再次被使用的时候值自然会被覆盖；栈顶指针不指向这里就不会有问题
-    return operand_stack[operand_stack_top--];
-}
-
-void operator_stack_push_back(Operator input)
-{
-    operator_stack_top++;
-    operator_stack[operator_stack_top] = input;
-}
-
-Operator operator_stack_pop()
-{
-    return operator_stack[operator_stack_top--];
 }
 
 // public:

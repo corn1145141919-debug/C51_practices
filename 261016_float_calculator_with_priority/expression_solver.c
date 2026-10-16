@@ -69,10 +69,11 @@ void calculate()
     Operand left = operand_stack_pop();
     Operand result;
 
-    if (right.is_error || left.is_error)
+    if (right.is_error || left.is_error || (curr_operator == DIV && right.value == 0.0f)) // 提前排除一些情况
     {
         // error的传递
         result.is_error = 1;
+        result.value = 0.0f; // 增加确定性，不依赖于随机的赋值
     }
     else
     {

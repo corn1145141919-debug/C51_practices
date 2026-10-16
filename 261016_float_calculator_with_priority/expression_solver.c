@@ -126,6 +126,8 @@ void expression_solver_push_operand(Operand input)
     {
         // 非常简单的行为
         operand_stack_push_back(input);
+        
+        is_last_token_operand = 1; // 之前忘记进行状态标定和转移了；我们只考虑合法的输入，因此在这里转移
     }
 }
 
@@ -145,6 +147,8 @@ void expression_solver_push_operator(Operator input)
                 calculate();
             }
         }
+
+        is_last_token_operand = 0;
     }
 }
 

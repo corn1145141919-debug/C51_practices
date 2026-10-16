@@ -247,7 +247,7 @@ unsigned long expression_receiver_process_input(ButtonInput input)
             }
             else // if (0 <= input && input <= 9) // 默认总是满足条件
             {
-                if (state == entering_number__decimal_part && status.entering_number_status.temp_decimal_part < SIG_FIGS) // 如果超过小数有效数字，就直接忽略输入
+                if (state == entering_number__decimal_part && status.entering_number_status.curr_decimal_part_bit < SIG_FIGS) // 如果超过小数有效数字，就直接忽略输入
                 {
                     status.entering_number_status.temp_decimal_part[status.entering_number_status.curr_decimal_part_bit] = input;
                     status.entering_number_status.curr_decimal_part_bit++;

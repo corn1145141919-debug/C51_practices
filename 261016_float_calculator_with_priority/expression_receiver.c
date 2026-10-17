@@ -8,7 +8,8 @@
 
 #include <INTRINS.H> // 检测浮点数是否为error
 
-enum State
+// 忘记将这个状态变量改成static的了！
+static idata enum State
 {
     showing_answer,
     waiting_for_operand,
@@ -40,9 +41,6 @@ static idata union
     WaitingForOperandOrShowingAnswerStatus waiting_for_operand_or_showing_answer_status;
 } status;
 static idata Operand ans; // 似乎只适用于showing_answer一个状态？
-
-// 规定-1情况下不显示小数点
-signed char decimal_point_place;
 
 // 各种构造函数
 // 注意：所有跳转到EN状态的都需要实现该初始化函数

@@ -16,7 +16,7 @@
 #define INTERRUPT(x)
 #endif
 
-const char table[] = {
+const unsigned char code table[] = {
     0x3f,
     0x06,
     0x5b,

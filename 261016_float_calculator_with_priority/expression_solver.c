@@ -64,10 +64,15 @@ Operator operator_stack_pop()
 // 内含error处理
 void calculate()
 {
-    Operator curr_operator = operator_stack_pop();
-    Operand right = operand_stack_pop();
-    Operand left = operand_stack_pop();
+    Operator curr_operator;
+    Operand right;
+    Operand left;
     Operand result;
+
+    // 声明和赋值分开
+    curr_operator = operator_stack_pop();
+    right = operand_stack_pop();
+    left = operand_stack_pop();
 
     if (right.is_error || left.is_error || (curr_operator == DIV && right.value == 0.0f)) // 提前排除一些情况
     {

@@ -195,7 +195,7 @@ void DigitalTube_Display_Overflow(void)
 void DigitalTube_Display_Data(const struct Data4DigitalTube *input)
 {
     unsigned char i;
-    unsigned char code;
+    unsigned char Code; // 不能用涉及宏定义的code
 
     if (input->is_error)
     {
@@ -205,12 +205,12 @@ void DigitalTube_Display_Data(const struct Data4DigitalTube *input)
 
     for (i = 0; i < 8; ++i)
     {
-        code = input->digits[i];
-        if (code <= 9)
+        Code = input->digits[i];
+        if (Code <= 9)
         {
-            buffer[i] = table[code];
+            buffer[i] = table[Code];
         }
-        else if (code == DISPLAY_MINUS)
+        else if (Code == DISPLAY_MINUS)
         {
             buffer[i] = 0x40;
         }

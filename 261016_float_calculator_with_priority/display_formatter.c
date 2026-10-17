@@ -306,6 +306,7 @@ void DisplayFormatter_FormatResult(
     unsigned long integer_limit;
     unsigned char text[DISPLAY_MAX_TEXT];
     unsigned char length;
+    unsigned char integer_text_length;
     unsigned char i;
     unsigned long divisor;
     signed char point_index;
@@ -408,6 +409,7 @@ void DisplayFormatter_FormatResult(
     else
     {
         length = append_unsigned_long_digits(text, length, rounded / divisor);
+        integer_text_length = length;
         point_index = (signed char)(length - 1);
         divisor /= 10UL;
         for (i = 0; i < decimals; ++i)
@@ -415,9 +417,15 @@ void DisplayFormatter_FormatResult(
             text[length++] = (unsigned char)((rounded / divisor) % 10UL);
             divisor /= 10UL;
         }
-        while (length > 0 && text[length - 1] == 0)
+        /* Remove only fractional trailing zeroes.  The zero at the end of
+         * an integer such as 20 must remain part of the displayed value. */
+        while (length > integer_text_length && text[length - 1] == 0)
         {
             --length;
+        }
+        if (length == integer_text_length)
+        {
+            point_index = -1;
         }
         if (length <= (negative ? 2 : 1))
         {

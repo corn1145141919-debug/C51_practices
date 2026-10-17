@@ -9,8 +9,8 @@
 
 // 防御operator和operand没有交替到来的情况，我们暂时静默忽略多余的operator token 或者 operand token
 static unsigned char is_last_token_operand;
-static Operand operand_stack[OPERAND_STACK_SIZE];
-static Operator operator_stack[OPERATOR_STACK_SIZE];
+static idata Operand operand_stack[OPERAND_STACK_SIZE];
+static idata Operator operator_stack[OPERATOR_STACK_SIZE];
 // 指向当前栈顶元素所在位置。栈空的时候指向-1。
 static signed char operand_stack_top;
 static signed char operator_stack_top;
@@ -64,10 +64,15 @@ Operator operator_stack_pop()
 // 内含error处理
 void calculate()
 {
-    Operator curr_operator = operator_stack_pop();
-    Operand right = operand_stack_pop();
-    Operand left = operand_stack_pop();
+    Operator curr_operator;
+    Operand right;
+    Operand left;
     Operand result;
+
+    // 声明和赋值分开
+    curr_operator = operator_stack_pop();
+    right = operand_stack_pop();
+    left = operand_stack_pop();
 
     if (right.is_error || left.is_error || (curr_operator == DIV && right.value == 0.0f)) // 提前排除一些情况
     {

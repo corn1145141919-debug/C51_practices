@@ -8,7 +8,8 @@
 
 #include <INTRINS.H> // 检测浮点数是否为error
 
-enum State
+// 忘记将这个状态变量改成static的了！
+static idata enum State
 {
     showing_answer,
     waiting_for_operand,
@@ -34,15 +35,12 @@ typedef struct
     Operator curr_operator;
 } WaitingForOperandOrShowingAnswerStatus;
 
-static union 
+static idata union 
 {
     EnteringNubmerStatus entering_number_status;
     WaitingForOperandOrShowingAnswerStatus waiting_for_operand_or_showing_answer_status;
 } status;
-static Operand ans; // 似乎只适用于showing_answer一个状态？
-
-// 规定-1情况下不显示小数点
-signed char decimal_point_place;
+static idata Operand ans; // 似乎只适用于showing_answer一个状态？
 
 // 各种构造函数
 // 注意：所有跳转到EN状态的都需要实现该初始化函数
@@ -136,18 +134,11 @@ void expression_receiver_init()
     expression_solver_init();
 }
 
-void make_integer_data(Data4DigitalTube* target)
-{}
-
-void make_real_data(Data4DigitalTube* target)
-{}
-
-
 // 该函数完成状态机的主要职责，同时耦合宏观的数码管所需数据制造逻辑
 Data4DigitalTube expression_receiver_process_input(ButtonInput input)
 {
     // 每一轮更新。关于初始化：初始化是直接显示被初始化的ans = 0，没有问题。
-    static Data4DigitalTube output;
+    static idata Data4DigitalTube output;
     switch (state)
     {
         case showing_answer:
@@ -308,6 +299,30 @@ Data4DigitalTube expression_receiver_process_input(ButtonInput input)
         {
             break;
         }
+    }
+
+    /*
+     * Display generation is deliberately performed after the state-machine
+     * transition.  This makes the frame returned for the key press describe
+     * the new state (including the first digit or a freshly entered point),
+     * while waiting_for_operand naturally keeps the previous frame.
+     */
+    if (state == showing_answer)
+    {
+        DisplayFormatter_FormatResult(&output, ans.is_error, ans.value);
+    }
+    else if (state == entering_number__integer_part
+        || state == entering_number__decimal_part)
+    {
+        /* host-only diagnostic omitted in Keil build */
+        DisplayFormatter_FormatInput(
+            &output,
+            status.entering_number_status.is_entered_number_negative,
+            status.entering_number_status.temp_integer_part,
+            status.entering_number_status.temp_decimal_part,
+            status.entering_number_status.curr_decimal_part_bit,
+            state == entering_number__decimal_part,
+            status.entering_number_status.is_temp_integer_part_overflow);
     }
 
     return output;

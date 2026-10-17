@@ -1,6 +1,7 @@
 #ifndef __EXPRESSION_RECEIVER__H__
 #define __EXPRESSION_RECEIVER__H__
 #include "token.h"
+#include "display_formatter.h"
 
 // 0 到 9 正常输入，毕竟C的enum比C++的enum class松很多
 typedef enum
@@ -12,15 +13,6 @@ typedef enum
     dec_pt = 14,
     eq = 15
 } ButtonInput;
-
-typedef struct
-{
-    unsigned char is_error;
-    signed long numbers;
-    unsigned char digital_point_place;
-    // 需要处理“负零点几”的逻辑。只打补丁。
-    
-} Data4DigitalTube;
 
 // 上电 or Reset 之后，先执行上述初始化函数。
 void expression_receiver_init();

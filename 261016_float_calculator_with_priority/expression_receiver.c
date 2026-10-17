@@ -310,5 +310,29 @@ Data4DigitalTube expression_receiver_process_input(ButtonInput input)
         }
     }
 
+    /*
+     * Display generation is deliberately performed after the state-machine
+     * transition.  This makes the frame returned for the key press describe
+     * the new state (including the first digit or a freshly entered point),
+     * while waiting_for_operand naturally keeps the previous frame.
+     */
+    if (state == showing_answer)
+    {
+        DisplayFormatter_FormatResult(&output, ans.is_error, ans.value);
+    }
+    else if (state == entering_number__integer_part
+        || state == entering_number__decimal_part)
+    {
+        /* host-only diagnostic omitted in Keil build */
+        DisplayFormatter_FormatInput(
+            &output,
+            status.entering_number_status.is_entered_number_negative,
+            status.entering_number_status.temp_integer_part,
+            status.entering_number_status.temp_decimal_part,
+            status.entering_number_status.curr_decimal_part_bit,
+            state == entering_number__decimal_part,
+            status.entering_number_status.is_temp_integer_part_overflow);
+    }
+
     return output;
 }

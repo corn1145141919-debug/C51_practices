@@ -1,6 +1,8 @@
 #include <REGX52.H>
 #include <math.h>
 
+#include "display_formatter.h"
+
 // private:
 #include "timer0.h"
 #define BIT_SELECTION_REG P2
@@ -188,4 +190,38 @@ void DigitalTube_Display_Overflow(void)
     buffer[2] = 0x38; // L
     buffer[1] = table[0];
     buffer[0] = table[3];
+}
+
+void DigitalTube_Display_Data(const struct Data4DigitalTube *input)
+{
+    unsigned char i;
+    unsigned char code;
+
+    if (input->is_error)
+    {
+        DigitalTube_Display_Error();
+        return;
+    }
+
+    for (i = 0; i < 8; ++i)
+    {
+        code = input->digits[i];
+        if (code <= 9)
+        {
+            buffer[i] = table[code];
+        }
+        else if (code == DISPLAY_MINUS)
+        {
+            buffer[i] = 0x40;
+        }
+        else
+        {
+            buffer[i] = table[blank];
+        }
+
+        if (input->decimal_point_mask & (unsigned char)(1u << i))
+        {
+            buffer[i] |= 0x80;
+        }
+    }
 }

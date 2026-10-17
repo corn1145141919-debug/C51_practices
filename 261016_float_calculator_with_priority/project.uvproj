@@ -374,6 +374,11 @@
               <FilePath>.\digital_tube.c</FilePath>
             </File>
             <File>
+              <FileName>display_formatter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\display_formatter.c</FilePath>
+            </File>
+            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\main.c</FilePath>
@@ -397,6 +402,11 @@
               <FileName>digital_tube.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\digital_tube.h</FilePath>
+            </File>
+            <File>
+              <FileName>display_formatter.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\display_formatter.h</FilePath>
             </File>
             <File>
               <FileName>matrixButton.h</FileName>

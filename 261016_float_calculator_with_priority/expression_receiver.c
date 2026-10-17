@@ -34,12 +34,12 @@ typedef struct
     Operator curr_operator;
 } WaitingForOperandOrShowingAnswerStatus;
 
-static union 
+static idata union 
 {
     EnteringNubmerStatus entering_number_status;
     WaitingForOperandOrShowingAnswerStatus waiting_for_operand_or_showing_answer_status;
 } status;
-static Operand ans; // 似乎只适用于showing_answer一个状态？
+static idata Operand ans; // 似乎只适用于showing_answer一个状态？
 
 // 规定-1情况下不显示小数点
 signed char decimal_point_place;
@@ -140,7 +140,7 @@ void expression_receiver_init()
 Data4DigitalTube expression_receiver_process_input(ButtonInput input)
 {
     // 每一轮更新。关于初始化：初始化是直接显示被初始化的ans = 0，没有问题。
-    static Data4DigitalTube output;
+    static idata Data4DigitalTube output;
     switch (state)
     {
         case showing_answer:

@@ -9,8 +9,8 @@
 
 // 防御operator和operand没有交替到来的情况，我们暂时静默忽略多余的operator token 或者 operand token
 static unsigned char is_last_token_operand;
-static Operand operand_stack[OPERAND_STACK_SIZE];
-static Operator operator_stack[OPERATOR_STACK_SIZE];
+static idata Operand operand_stack[OPERAND_STACK_SIZE];
+static idata Operator operator_stack[OPERATOR_STACK_SIZE];
 // 指向当前栈顶元素所在位置。栈空的时候指向-1。
 static signed char operand_stack_top;
 static signed char operator_stack_top;

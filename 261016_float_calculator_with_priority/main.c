@@ -5,7 +5,7 @@
 #include "timer0.h"
 #include "expression_receiver.h"
 
-const ButtonInput map_from_button_to_receiver[16] = {
+const ButtonInput code map_from_button_to_receiver[16] = {
     add,
     eq,
     0,

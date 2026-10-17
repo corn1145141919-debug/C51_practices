@@ -19,7 +19,7 @@ typedef struct Data4DigitalTube
     unsigned char decimal_point_mask;
 } Data4DigitalTube;
 
-void DisplayFormatter_Clear(Data4DigitalTube *target);
+// void DisplayFormatter_Clear(Data4DigitalTube *target);
 
 void DisplayFormatter_FormatInput(
     Data4DigitalTube *target,

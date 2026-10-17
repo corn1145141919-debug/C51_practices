@@ -18,10 +18,10 @@ static void clear_frame(Data4DigitalTube *target)
     }
 }
 
-void DisplayFormatter_Clear(Data4DigitalTube *target)
-{
-    clear_frame(target);
-}
+// void DisplayFormatter_Clear(Data4DigitalTube *target)
+// {
+//     clear_frame(target);
+// }
 
 static unsigned char count_unsigned_long_digits(unsigned long value)
 {

@@ -136,13 +136,6 @@ void expression_receiver_init()
     expression_solver_init();
 }
 
-void make_integer_data(Data4DigitalTube* target)
-{}
-
-void make_real_data(Data4DigitalTube* target)
-{}
-
-
 // 该函数完成状态机的主要职责，同时耦合宏观的数码管所需数据制造逻辑
 Data4DigitalTube expression_receiver_process_input(ButtonInput input)
 {

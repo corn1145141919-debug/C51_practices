@@ -136,14 +136,32 @@ void expression_receiver_init()
     expression_solver_init();
 }
 
-// 该函数完成状态机的主要职责。
+void make_integer_data(Data4DigitalTube* target)
+{}
+
+void make_real_data(Data4DigitalTube* target)
+{}
+
+
+// 该函数完成状态机的主要职责，同时耦合宏观的数码管所需数据制造逻辑
 Data4DigitalTube expression_receiver_process_input(ButtonInput input)
 {
-    signed long output = 0; // TODO 关于该变量的逻辑代码
+    // 每一轮更新。关于初始化：初始化是直接显示被初始化的ans = 0，没有问题。
+    static Data4DigitalTube output;
     switch (state)
     {
         case showing_answer:
         {
+            // 首先发送数码管信息
+            if (ans.is_error)
+            {
+                output.is_error = 1;
+            }
+            else
+            {
+                // TODO
+            }
+
             // 必然只是第一次按下，并且是状态转移，因此可以推出ans token之后直接调用之前写好的构造函数重设
             if (add <= input && input <= div) // 是加减乘除中的一个；
             {
@@ -182,6 +200,8 @@ Data4DigitalTube expression_receiver_process_input(ButtonInput input)
         }
         case waiting_for_operand:
         {
+            // 显然这个状态只需要继承上一个状态（showing_answer或者entering_numbers）的显示信息，因此不必加代码
+
             // 是加减乘除中的一个
             if (input == add) 
             {
@@ -218,6 +238,11 @@ Data4DigitalTube expression_receiver_process_input(ButtonInput input)
                     state = entering_number__decimal_part;
                     // “点几”是“零点几”的语法糖
                     expression_receiver_EN_init(status.waiting_for_operand_or_showing_answer_status.is_next_operand_negative, 0);
+
+                    // 在这里更新数码管显示
+                    output.is_error = 0;
+                    output.digital_point_place = 1;
+                    output.numbers = 0;
                 }
                 else
                 {
@@ -285,5 +310,5 @@ Data4DigitalTube expression_receiver_process_input(ButtonInput input)
         }
     }
 
-    return output; // TODO
+    return output;
 }

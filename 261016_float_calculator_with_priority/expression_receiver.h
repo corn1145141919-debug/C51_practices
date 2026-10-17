@@ -18,6 +18,8 @@ typedef struct
     unsigned char is_error;
     signed long numbers;
     unsigned char digital_point_place;
+    // 需要处理“负零点几”的逻辑。只打补丁。
+    
 } Data4DigitalTube;
 
 // 上电 or Reset 之后，先执行上述初始化函数。

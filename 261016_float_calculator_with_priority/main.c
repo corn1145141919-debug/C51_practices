@@ -30,22 +30,25 @@ void main()
     Data4DigitalTube data_4_digital_tube;
     Timer0_Init();
     expression_receiver_init();
+    // 完整初始化
+    data_4_digital_tube = expression_receiver_process_input(0);
 
     while(1)
     {
-        key_got = map_from_button_to_receiver[MatrixButton_getKey()];
-        data_4_digital_tube = expression_receiver_process_input(key_got);
         if (data_4_digital_tube.is_error)
         {
             DigitalTube_Display_Error();
         }
         else
         {
-            DigitalTube_Display_signed_32_bit_decimal_int(data_4_digital_tube.nubmers);
+            DigitalTube_Display_signed_32_bit_decimal_int(data_4_digital_tube.numbers);
             if (data_4_digital_tube.digital_point_place >= 0)
             {
                 DigitalTube_add_decimal_point(data_4_digital_tube.digital_point_place);
             }
         }
+
+        key_got = map_from_button_to_receiver[MatrixButton_getKey()];
+        data_4_digital_tube = expression_receiver_process_input(key_got);
     }
 }

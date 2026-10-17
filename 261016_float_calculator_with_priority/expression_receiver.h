@@ -16,7 +16,7 @@ typedef enum
 typedef struct
 {
     unsigned char is_error;
-    signed long nubmers;
+    signed long numbers;
     unsigned char digital_point_place;
 } Data4DigitalTube;
 
